@@ -10,6 +10,14 @@ type Content struct {
 	date   string
 }
 
+func subscribeContent(client *Client, data interface{}) {
+	fmt.Print("Subscribe content \n")
+}
+
+func unsubscribeContent(client *Client, data interface{}) {
+	fmt.Print("Unsubscribe content \n")
+}
+
 func addContent(client *Client, data interface{}) {
 	fmt.Print("Add content \n")
 }
