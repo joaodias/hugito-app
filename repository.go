@@ -1,31 +1,32 @@
 package main
 
 import (
-	"fmt"
+    "fmt"
 )
 
+// Repository represents the repository parameters exchanged between the server and the client.
 type Repository struct {
-	Name string
+    Name string
 }
 
 func subscribeRepository(client *Client, data interface{}) {
-	fmt.Print("Repository subscribe \n")
+    fmt.Print("Repository subscribe \n")
 }
 
 func unsubscribeRepository(client *Client, data interface{}) {
-	fmt.Print("Repository unsubscribe \n")
+    fmt.Print("Repository unsubscribe \n")
 }
 
 func addRepository(client *Client, data interface{}) {
-	fmt.Print("Add repository \n")
+    fmt.Print("Add repository \n")
 }
 
 func removeRepository(client *Client, data interface{}) {
-	fmt.Print("Remove repository \n")
+    fmt.Print("Remove repository \n")
 }
 
 func validateRepository(client *Client, data interface{}) {
-	fmt.Print("Validate repository \n")
+    fmt.Print("Validate repository \n")
 
-	client.send <- Message{"repository validate", true}
+    client.send <- Message{"repository validate", true}
 }
