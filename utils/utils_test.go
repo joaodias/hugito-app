@@ -3,7 +3,7 @@ package utils_test
 import (
     "encoding/base64"
 
-    utils "github.com/joaodias/hugitoApp/utils"
+    utils "github.com/joaodias/hugito-app/utils"
 
     . "github.com/onsi/ginkgo"
     . "github.com/onsi/gomega"
