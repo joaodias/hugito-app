@@ -1,0 +1,21 @@
+language: go
+go:
+ - 1.6.2
+
+before_install:
+  - go get github.com/google/go-github/github
+  - go get golang.org/x/oauth2
+  - go get golang.org/x/crypto/bcrypt
+  - go get github.com/onsi/ginkgo
+  - go get github.com/onsi/gomega
+  - go get github.com/mitchellh/mapstructure
+  - go get golang.org/x/oauth2
+  - go get golang.org/x/oauth2/github
+  - go get github.com/gorilla/websocket
+
+install:
+  - export GOPATH="${TRAVIS_BUILD_DIR}/Godeps/_workspace:$GOPATH"
+  - export PATH="${TRAVIS_BUILD_DIR}/Godeps/_workspace/bin:$PATH"
+
+script:
+ - go test -v ./utils
