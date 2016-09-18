@@ -12,6 +12,7 @@ before_install:
   - go get golang.org/x/oauth2
   - go get golang.org/x/oauth2/github
   - go get github.com/gorilla/websocket
+  - go get github.com/fatih/structs
 
 install:
   - export GOPATH="${TRAVIS_BUILD_DIR}/Godeps/_workspace:$GOPATH"
@@ -19,3 +20,4 @@ install:
 
 script:
  - go test -v ./utils
+ - go test -v ./handlers
