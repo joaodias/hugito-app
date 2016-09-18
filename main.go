@@ -3,34 +3,34 @@ package main
 import (
     "fmt"
     "net/http"
+
+    handlers "github.com/joaodias/hugito-app/handlers"
 )
 
 func main() {
-    router := NewRouter()
+    router := handlers.NewRouter()
 
-    router.Handle("repository subscribe", subscribeRepository)
-    router.Handle("repository unsubscribe", unsubscribeRepository)
-    router.Handle("repository add", addRepository)
-    router.Handle("repository remove", removeRepository)
-    router.Handle("repository validate", validateRepository)
+    router.Handle("repository subscribe", handlers.SubscribeRepository)
+    router.Handle("repository unsubscribe", handlers.UnsubscribeRepository)
+    router.Handle("repository add", handlers.AddRepository)
+    router.Handle("repository remove", handlers.RemoveRepository)
+    router.Handle("repository validate", handlers.ValidateRepository)
 
-    router.Handle("content subscribe", subscribeContent)
-    router.Handle("content unsubscribe", unsubscribeContent)
-    router.Handle("content add", addContent)
-    router.Handle("content remove", removeContent)
-    router.Handle("content update", updateContent)
+    router.Handle("content subscribe", handlers.SubscribeContent)
+    router.Handle("content unsubscribe", handlers.UnsubscribeContent)
+    router.Handle("content add", handlers.AddContent)
+    router.Handle("content remove", handlers.RemoveContent)
+    router.Handle("content update", handlers.UpdateContent)
 
-    router.Handle("configuration subscribe", subscribeContent)
-    router.Handle("configuration unsubscribe", unsubscribeContent)
-    router.Handle("configuration add", addContent)
-    router.Handle("configuration remove", removeContent)
-    router.Handle("configuration update", updateContent)
+    router.Handle("configuration subscribe", handlers.SubscribeContent)
+    router.Handle("configuration unsubscribe", handlers.UnsubscribeContent)
+    router.Handle("configuration add", handlers.AddContent)
+    router.Handle("configuration remove", handlers.RemoveContent)
+    router.Handle("configuration update", handlers.UpdateContent)
 
-    router.Handle("user subscribe", subscribeUser)
-    router.Handle("user unsubscribe", unsubscribeUser)
-    router.Handle("user set", setUser)
+    router.Handle("user subscribe", handlers.GetUser)
 
-    router.Handle("authenticate", authenticate)
+    router.Handle("authenticate", handlers.Authenticate)
 
     http.Handle("/", router)
 
