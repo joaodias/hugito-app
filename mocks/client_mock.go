@@ -66,32 +66,6 @@ func (t *Client) GetOauthConfiguration() *oauth2.Config {
 	return t.OauthConf
 }
 
-func (t *Client) GetChecker() handlers.Checker {
-	return t.Check
-}
-
-func (t *Client) Check(ClientID string, accessToken string) (*github.Authorization, *github.Response, error) {
-	authorizedToken := mockToken
-	if accessToken != authorizedToken {
-		resp := &http.Response{
-			Request:    &http.Request{},
-			StatusCode: http.StatusNotFound,
-		}
-		response := &github.Response{
-			Response: resp,
-		}
-		return nil, response, nil
-	}
-	resp := &http.Response{
-		Request:    &http.Request{},
-		StatusCode: http.StatusFound,
-	}
-	response := &github.Response{
-		Response: resp,
-	}
-	return nil, response, nil
-}
-
 func (t *Client) GetNewClienter() handlers.NewClienter {
 	return t.NewClient
 }
