@@ -11,6 +11,7 @@ import (
 const (
 	UserFinished = iota
 	AuthenticationFinished
+	RepositoryFinished
 )
 
 // FindHandler returns the Handler related to the given message sent by the client.
@@ -75,14 +76,16 @@ func (socketClient *SocketClient) SetSend(name string, data interface{}) {
 	socketClient.send <- Message{name, data}
 }
 
-// NewFinishedChannel makes a new channel related to an handler. This channel // turns true whenever the operation related to that handler is finished.
+// NewFinishedChannel makes a new channel related to an handler. This channel
+// turns true whenever the operation related to that handler is finished.
 func (socketClient *SocketClient) NewFinishedChannel(finishedKey int) {
 	socketClient.FinishForKey(finishedKey)
 	socketClient.finishedChannels[finishedKey] = make(chan bool)
 }
 
 // FinishForKey finishes and deletes the channel associated to a given key in
-// the case that the channel already exists. This key numerically represents an // handler.
+// the case that the channel already exists. This key numerically represents an
+// handler.
 func (socketClient *SocketClient) FinishForKey(key int) {
 	if ch, found := socketClient.finishedChannels[key]; found {
 		ch <- true
@@ -90,7 +93,8 @@ func (socketClient *SocketClient) FinishForKey(key int) {
 	}
 }
 
-// Finished sets a specific channel from the set of channels that represent the // end of an operation to true. This value represents that the operation
+// Finished sets a specific channel from the set of channels that represent the
+// end of an operation to true. This value represents that the operation
 // associated to the given channel is finished.
 func (socketClient *SocketClient) Finished(key int) {
 	go func() {
