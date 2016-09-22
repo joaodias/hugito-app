@@ -16,6 +16,7 @@ var _ = Describe("Handlers", func() {
 	const (
 		UserFinished = iota
 		AuthenticationFinished
+		RepositoryFinished
 	)
 
 	Describe("Authentication Handlers", func() {
@@ -131,18 +132,6 @@ var _ = Describe("Handlers", func() {
 					Expect(mClient.Data).To(ContainSubstring(expectedData))
 				})
 			})
-			Context("and the token is invalid", func() {
-				expectedName := "logout"
-				expectedData := "User is not authenticated."
-				It("should return a logout message to the client", func() {
-					mockWithFakeToken := &MockUser{Name: "", AccessToken: "INVALIDTOKEN"}
-					mockJsonWithFakeToken := structs.Map(mockWithFakeToken)
-					handlers.GetUser(mClient, mockJsonWithFakeToken)
-					<-mClient.FinishedChannels[UserFinished]
-					Expect(mClient.Name).To(ContainSubstring(expectedName))
-					Expect(mClient.Data).To(ContainSubstring(expectedData))
-				})
-			})
 			Context("and the user is successfully retrieved", func() {
 				expectedName := "user set"
 				expectedData := &MockUser{Name: "joaodias", AccessToken: "90d64460d14870c08c81352a05dedd3465940a7c"}
@@ -172,7 +161,7 @@ var _ = Describe("Handlers", func() {
 			})
 			Context("and the user is not retrieved", func() {
 				expectedName := "logout"
-				expectedData := "Cannot get the desired data."
+				expectedData := "Cannot get the authorized user."
 				It("should return a user set message to the client", func() {
 					mockWithValidToken := &MockUser{Name: "joaodias", AccessToken: "90d64460d14870c08c81352a05dedd3465940a7c"}
 					mockJsonWithValidToken := structs.Map(mockWithValidToken)
@@ -195,6 +184,91 @@ var _ = Describe("Handlers", func() {
 					<-mClient.FinishedChannels[UserFinished]
 					Expect(mClient.Name).To(ContainSubstring(expectedName))
 					Expect(mClient.Data).To(Equal(expectedData))
+				})
+			})
+		})
+	})
+
+	Describe("Repository Handlers", func() {
+		var (
+			mClient    *mocks.Client
+			mux        *http.ServeMux
+			testServer *httptest.Server
+		)
+		type MockRepositories struct {
+			Names       []string `json:"names"`
+			AccessToken string   `json:"accessToken"`
+		}
+		BeforeEach(func() {
+			mClient = &mocks.Client{
+				FinishedChannels: make(map[int]chan bool),
+			}
+		})
+		Describe("When asking for user repositories", func() {
+			Context("and the JSON is invalid", func() {
+				expectedName := "error"
+				expectedData := "Error decoding json:"
+				It("should return an error to the client.", func() {
+					handlers.GetRepository(mClient, "some stuff that looks like an invalid json")
+					<-mClient.FinishedChannels[RepositoryFinished]
+					Expect(mClient.Name).To(ContainSubstring(expectedName))
+					Expect(mClient.Data).To(ContainSubstring(expectedData))
+				})
+			})
+			Context("and repositories are not retrieved", func() {
+				expectedName := "logout"
+				expectedData := "Cannot get the user repositories."
+				It("should return an error to the client.", func() {
+					mockWithValidToken := &MockRepositories{Names: []string{""}, AccessToken: "90d64460d14870c08c81352a05dedd3465940a7c"}
+					mockJsonWithValidToken := structs.Map(mockWithValidToken)
+					mux = http.NewServeMux()
+					testServer = httptest.NewServer(mux)
+					defer testServer.Close()
+					mux.HandleFunc("/user/repos/", func(w http.ResponseWriter, r *http.Request) {
+						fmt.Fprint(w, `{"Name":["repo1", "repo2", "repo3"]}`)
+					})
+					// To simulate the failed test a blank url is given to the
+					// github client server. This way, the server can't get any // username and instead returns an error.
+					mClient.OauthConf = &oauth2.Config{
+						ClientID:     "FAKE_CLIENT_ID",
+						ClientSecret: "FAKE_CLIENT_SECRET",
+						Endpoint: oauth2.Endpoint{
+							TokenURL: "",
+						},
+					}
+					handlers.GetRepository(mClient, mockJsonWithValidToken)
+					<-mClient.FinishedChannels[RepositoryFinished]
+					Expect(mClient.Name).To(ContainSubstring(expectedName))
+					Expect(mClient.Data).To(Equal(expectedData))
+				})
+			})
+			Context("and repositories are successfully retrieved", func() {
+				expectedName := "repository set"
+				expectedData := &MockRepositories{Names: []string{"repo1", "repo2", "repo3"}, AccessToken: "90d64460d14870c08c81352a05dedd3465940a7c"}
+				It("should return the retrieved repositories to the client.", func() {
+					mockWithValidToken := &MockRepositories{Names: []string{""}, AccessToken: "90d64460d14870c08c81352a05dedd3465940a7c"}
+					mockJsonWithValidToken := structs.Map(mockWithValidToken)
+					mux = http.NewServeMux()
+					testServer = httptest.NewServer(mux)
+					defer testServer.Close()
+					mux.HandleFunc("/user/repos/", func(w http.ResponseWriter, r *http.Request) {
+						fmt.Fprint(w, `[{"Name":"repo1"}, {"Name":"repo2"}, {"Name":"repo3"}]`)
+					})
+					// To simulate the failed test a blank url is given to the
+					// github client server. This way, the server can't get any // username and instead returns an error.
+					mClient.OauthConf = &oauth2.Config{
+						ClientID:     "FAKE_CLIENT_ID",
+						ClientSecret: "FAKE_CLIENT_SECRET",
+						Endpoint: oauth2.Endpoint{
+							TokenURL: testServer.URL,
+						},
+					}
+					handlers.GetRepository(mClient, mockJsonWithValidToken)
+					<-mClient.FinishedChannels[RepositoryFinished]
+					receivedData := mClient.Data.(handlers.Repositories)
+					Expect(mClient.Name).To(ContainSubstring(expectedName))
+					Expect(receivedData.Names).To(Equal(expectedData.Names))
+					Expect(receivedData.AccessToken).To(Equal(expectedData.AccessToken))
 				})
 			})
 		})
