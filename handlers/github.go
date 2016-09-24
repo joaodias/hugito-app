@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"github.com/google/go-github/github"
+	utils "github.com/joaodias/hugito-app/utils"
 	"golang.org/x/oauth2"
 	"net/http"
 )
@@ -24,6 +25,16 @@ func GetGithubClient(accessToken string, communicator Communicator) *github.Clie
 	oauthClient := oauthConf.Client(oauth2.NoContext, token)
 	newClienter := communicator.GetNewClienter()
 	return newClienter(oauthClient)
+}
+
+// GetGithubUserLogin gets the github user login name respective to the previouslly
+// authorized github client.
+func GetGithubUserLogin(githubClient *github.Client) (string, error) {
+	user, _, err := githubClient.Users.Get("")
+	if err != nil {
+		return "", err
+	}
+	return *user.Login, nil
 }
 
 // GetGithubUserName gets the github user name respective to the previouslly
@@ -52,6 +63,28 @@ func GetGithubRepositories(githubClient *github.Client) ([]string, error) {
 	}
 
 	return repositoriesName, nil
+}
+
+// GetGithubRepositoryTree gets the tree of files in the main directory of a repository of a given user.
+func GetGithubRepositoryTree(githubClient *github.Client, userLogin string, repositoryName string) ([]string, error) {
+	opt := &github.RepositoryContentGetOptions{}
+	_, githubRepositoryTree, _, err := githubClient.Repositories.GetContents(userLogin, repositoryName, "", opt)
+	if err != nil {
+		return []string{}, err
+	}
+	repositoryTree := make([]string, len(githubRepositoryTree))
+	for i := 0; i < len(githubRepositoryTree); i++ {
+		repositoryTree[i] = *githubRepositoryTree[i].Name
+	}
+	return repositoryTree, nil
+}
+
+// IsGithubRepositoryValid checks if a given repository tree matches the
+// criteria to be a valid HUGO repository.
+func IsGithubRepositoryValid(repositoryTree []string) bool {
+	referenceTree := []string{"content", "config.toml", "public", "themes"}
+	isValid := utils.ContainsSubArray(repositoryTree, referenceTree)
+	return isValid
 }
 
 // GetNewClienter returns a NewClient function from the github api. It is a
