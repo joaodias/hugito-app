@@ -17,15 +17,14 @@ type User struct {
 // 3. Get the github client for this user
 // 4. Get the github UserName
 func GetUser(communicator Communicator, data interface{}) {
-	communicator.NewFinishedChannel(UserFinished)
 	var user User
+	err := mapstructure.Decode(data, &user)
+	if err != nil {
+		communicator.SetSend("error", "Error decoding json: ")
+		return
+	}
+	communicator.NewFinishedChannel(UserFinished)
 	go func() {
-		err := mapstructure.Decode(data, &user)
-		if err != nil {
-			communicator.SetSend("error", "Error decoding json: ")
-			communicator.Finished(UserFinished)
-			return
-		}
 		githubClient := GetGithubClient(user.AccessToken, communicator)
 		user.Name, err = GetGithubUserName(githubClient)
 		if err != nil {

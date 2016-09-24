@@ -28,15 +28,14 @@ type Authentication struct {
 // 3. Get the token.
 // 4. Send the token to the client.
 func Authenticate(communicator Communicator, data interface{}) {
-	communicator.NewFinishedChannel(AuthenticationFinished)
 	var authentication Authentication
+	err := mapstructure.Decode(data, &authentication)
+	if err != nil {
+		communicator.SetSend("error", "Error decoding json: "+err.Error())
+		return
+	}
+	communicator.NewFinishedChannel(AuthenticationFinished)
 	go func() {
-		err := mapstructure.Decode(data, &authentication)
-		if err != nil {
-			communicator.SetSend("error", "Error decoding json: "+err.Error())
-			communicator.Finished(AuthenticationFinished)
-			return
-		}
 		if !isStateValid(authentication.State, authentication.ReceivedState) {
 			communicator.SetSend("error", "received state and state are different.")
 			communicator.Finished(AuthenticationFinished)
