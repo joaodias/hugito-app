@@ -308,12 +308,20 @@ var _ = Describe("Handlers", func() {
 			Titles      []string `json:"title"`
 			AccessToken string   `json:"accessToken"`
 		}
+		type MockContent struct {
+			RepositoryName string `json:"repositoryName"`
+			Title          string `json:"title"`
+			Body           string `json:"body"`
+			AccessToken    string `json:"accessToken"`
+		}
 		var (
-			mClient                   *mocks.Client
-			mux                       *http.ServeMux
-			testServer                *httptest.Server
-			mockValidatedRepo         *MockContentList
-			mockJSONWithValidatedRepo map[string]interface{}
+			mClient             *mocks.Client
+			mux                 *http.ServeMux
+			testServer          *httptest.Server
+			mockContentList     *MockContentList
+			mockJSONContentList map[string]interface{}
+			mockContent         *MockContent
+			mockJSONContent     map[string]interface{}
 		)
 		BeforeEach(func() {
 			mux = http.NewServeMux()
@@ -328,8 +336,10 @@ var _ = Describe("Handlers", func() {
 					},
 				},
 			}
-			mockValidatedRepo = &MockContentList{Name: "validatedrepo", Titles: []string{""}, AccessToken: "90d64460d14870c08c81352a05dedd3465940a7c"}
-			mockJSONWithValidatedRepo = structs.Map(mockValidatedRepo)
+			mockContentList = &MockContentList{Name: "validatedrepo", Titles: []string{""}, AccessToken: "90d64460d14870c08c81352a05dedd3465940a7c"}
+			mockJSONContentList = structs.Map(mockContentList)
+			mockContent = &MockContent{RepositoryName: "validatedrepo", Title: "filename", Body: "", AccessToken: "90d64460d14870c08c81352a05dedd3465940a7c"}
+			mockJSONContent = structs.Map(mockContent)
 		})
 		Describe("When getting a list of a content files", func() {
 			Context("and the JSON is invalid", func() {
@@ -345,7 +355,7 @@ var _ = Describe("Handlers", func() {
 					mux.HandleFunc("/user/", func(w http.ResponseWriter, r *http.Request) {
 						fmt.Fprint(w, `someErronicThingHappened`)
 					})
-					handlers.GetContentList(mClient, mockJSONWithValidatedRepo)
+					handlers.GetContentList(mClient, mockJSONContentList)
 					<-mClient.FinishedChannels[ContentFinished]
 					Expect(mClient.Name).To(Equal("logout"))
 					Expect(mClient.Data).To(Equal("Can't retrieve the authenticated user."))
@@ -360,7 +370,7 @@ var _ = Describe("Handlers", func() {
 					mux.HandleFunc("/repos/joaodias/validatedrepo/contents/content", func(w http.ResponseWriter, r *http.Request) {
 						fmt.Fprint(w, `someErroniousStuff`)
 					})
-					handlers.GetContentList(mClient, mockJSONWithValidatedRepo)
+					handlers.GetContentList(mClient, mockJSONContentList)
 					<-mClient.FinishedChannels[ContentFinished]
 					Expect(mClient.Name).To(Equal("error"))
 					Expect(mClient.Data).To(Equal("Can't retrieve the content list."))
@@ -375,11 +385,65 @@ var _ = Describe("Handlers", func() {
 					mux.HandleFunc("/repos/joaodias/validatedrepo/contents/content", func(w http.ResponseWriter, r *http.Request) {
 						fmt.Fprint(w, `[{"Name":"Content File 1"}, {"Name":"Content File 2"}]`)
 					})
-					handlers.GetContentList(mClient, mockJSONWithValidatedRepo)
+					handlers.GetContentList(mClient, mockJSONContentList)
 					<-mClient.FinishedChannels[ContentFinished]
 					receivedData := mClient.Data.(handlers.ContentList)
 					Expect(receivedData.Name).To(Equal("validatedrepo"))
 					Expect(receivedData.Titles).To(Equal([]string{"Content File 1", "Content File 2"}))
+					Expect(receivedData.AccessToken).To(Equal("90d64460d14870c08c81352a05dedd3465940a7c"))
+				})
+			})
+		})
+		Describe("When getting the content of a github content file", func() {
+			Context("and the JSON is invalid", func() {
+				It("should return an error to the client", func() {
+					handlers.GetFileContent(mClient, "some stuff that looks like an invalid json")
+					Expect(mClient.Name).To(ContainSubstring("error"))
+					Expect(mClient.Data).To(ContainSubstring("Error decoding json:"))
+				})
+			})
+			Context("and the user Login cannot be retrieved", func() {
+				It("should return a logout message to the client", func() {
+					defer testServer.Close()
+					mux.HandleFunc("/user/", func(w http.ResponseWriter, r *http.Request) {
+						fmt.Fprint(w, `someErronicThingHappened`)
+					})
+					handlers.GetFileContent(mClient, mockJSONContent)
+					<-mClient.FinishedChannels[ContentFinished]
+					Expect(mClient.Name).To(Equal("logout"))
+					Expect(mClient.Data).To(Equal("Can't retrieve the authenticated user."))
+				})
+			})
+			Context("and the content of the file cannot be retrieved", func() {
+				It("should return an error message to the client", func() {
+					defer testServer.Close()
+					mux.HandleFunc("/user/", func(w http.ResponseWriter, r *http.Request) {
+						fmt.Fprint(w, `{"Login":"joaodias"}`)
+					})
+					mux.HandleFunc("/repos/joaodias/validatedrepo/contents/content/filename", func(w http.ResponseWriter, r *http.Request) {
+						fmt.Fprint(w, `someErroniousStuff`)
+					})
+					handlers.GetFileContent(mClient, mockJSONContent)
+					<-mClient.FinishedChannels[ContentFinished]
+					Expect(mClient.Name).To(Equal("error"))
+					Expect(mClient.Data).To(Equal("Can't retrieve the file content."))
+				})
+			})
+			Context("and the content list is successfully retrieved", func() {
+				It("should return a content list message to the client", func() {
+					defer testServer.Close()
+					mux.HandleFunc("/user/", func(w http.ResponseWriter, r *http.Request) {
+						fmt.Fprint(w, `{"Login":"joaodias"}`)
+					})
+					mux.HandleFunc("/repos/joaodias/validatedrepo/contents/content/filename", func(w http.ResponseWriter, r *http.Request) {
+						fmt.Fprint(w, `{"Content":"Really cool content."}`)
+					})
+					handlers.GetFileContent(mClient, mockJSONContent)
+					<-mClient.FinishedChannels[ContentFinished]
+					receivedData := mClient.Data.(handlers.Content)
+					Expect(receivedData.RepositoryName).To(Equal("validatedrepo"))
+					Expect(receivedData.Title).To(Equal("filename"))
+					Expect(receivedData.Body).To(Equal("Really cool content."))
 					Expect(receivedData.AccessToken).To(Equal("90d64460d14870c08c81352a05dedd3465940a7c"))
 				})
 			})

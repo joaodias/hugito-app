@@ -80,6 +80,16 @@ func GetGithubRepositoryTree(githubClient *github.Client, userLogin string, repo
 	return repositoryTree, nil
 }
 
+// GetGithubFileContent gets the content of a HUGO content file.
+func GetGithubFileContent(githubClient *github.Client, userLogin string, repositoryName string, path string) (string, error) {
+	opt := &github.RepositoryContentGetOptions{}
+	fileContent, _, _, err := githubClient.Repositories.GetContents(userLogin, repositoryName, path, opt)
+	if err != nil {
+		return "", err
+	}
+	return *fileContent.Content, nil
+}
+
 // IsGithubRepositoryValid checks if a given repository tree matches the
 // criteria to be a valid HUGO repository.
 func IsGithubRepositoryValid(repositoryTree []string) bool {
