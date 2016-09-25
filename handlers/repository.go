@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"fmt"
 	"github.com/mitchellh/mapstructure"
 )
 
@@ -38,18 +37,6 @@ func GetRepository(communicator Communicator, data interface{}) {
 	}()
 }
 
-func UnsubscribeRepository(communicator Communicator, data interface{}) {
-	fmt.Print("Repositories unsubscribe \n")
-}
-
-func AddRepository(communicator Communicator, data interface{}) {
-	fmt.Print("Add repository \n")
-}
-
-func RemoveRepository(communicator Communicator, data interface{}) {
-	fmt.Print("Remove repository \n")
-}
-
 // ValidateRepository checks if a given repository has a valid hugo
 // configuration in the master branch.
 //
@@ -79,7 +66,7 @@ func ValidateRepository(communicator Communicator, data interface{}) {
 			communicator.Finished(RepositoryFinished)
 			return
 		}
-		repositoryTree, err := GetGithubRepositoryTree(githubClient, userLogin, repository.Name)
+		repositoryTree, err := GetGithubRepositoryTree(githubClient, userLogin, repository.Name, "")
 		if err != nil {
 			communicator.SetSend("error", "Can't retrieve selected repository.")
 			communicator.Finished(RepositoryFinished)
