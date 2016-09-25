@@ -13,9 +13,10 @@ type ContentList struct {
 
 // Content represents the information exchanged between the server and the client.
 type Content struct {
-	title  string
-	author string
-	date   string
+	RepositoryName string `json:"repositoryName"`
+	Title          string `json:"title"`
+	Body           string `json:"body"`
+	AccessToken    string `json:"accessToken"`
 }
 
 // GetContentList gets the repository content list.
@@ -48,6 +49,40 @@ func GetContentList(communicator Communicator, data interface{}) {
 			return
 		}
 		communicator.SetSend("content list", contentList)
+		communicator.Finished(ContentFinished)
+	}()
+}
+
+// GetFileContent gets the content of a file from the github repository.
+//
+// Happy Path:
+// 1. Decode JSON
+// 2. Get the github authenticated user
+// 3. Get the content of the given repository file
+// 4. Send the content to the client
+func GetFileContent(communicator Communicator, data interface{}) {
+	var content Content
+	err := mapstructure.Decode(data, &content)
+	if err != nil {
+		communicator.SetSend("error", "Error decoding json:"+err.Error())
+		return
+	}
+	communicator.NewFinishedChannel(ContentFinished)
+	go func() {
+		githubClient := GetGithubClient(content.AccessToken, communicator)
+		userLogin, err := GetGithubUserLogin(githubClient)
+		if err != nil {
+			communicator.SetSend("logout", "Can't retrieve the authenticated user.")
+			communicator.Finished(ContentFinished)
+			return
+		}
+		content.Body, err = GetGithubFileContent(githubClient, userLogin, content.RepositoryName, "content/"+content.Title)
+		if err != nil {
+			communicator.SetSend("error", "Can't retrieve the file content.")
+			communicator.Finished(ContentFinished)
+			return
+		}
+		communicator.SetSend("content set", content)
 		communicator.Finished(ContentFinished)
 	}()
 }
