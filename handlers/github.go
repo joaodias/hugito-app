@@ -65,10 +65,11 @@ func GetGithubRepositories(githubClient *github.Client) ([]string, error) {
 	return repositoriesName, nil
 }
 
-// GetGithubRepositoryTree gets the tree of files in the main directory of a repository of a given user.
-func GetGithubRepositoryTree(githubClient *github.Client, userLogin string, repositoryName string) ([]string, error) {
+// GetGithubRepositoryTree gets the tree of files in the given path of a
+// repository of a given user.
+func GetGithubRepositoryTree(githubClient *github.Client, userLogin string, repositoryName string, path string) ([]string, error) {
 	opt := &github.RepositoryContentGetOptions{}
-	_, githubRepositoryTree, _, err := githubClient.Repositories.GetContents(userLogin, repositoryName, "", opt)
+	_, githubRepositoryTree, _, err := githubClient.Repositories.GetContents(userLogin, repositoryName, path, opt)
 	if err != nil {
 		return []string{}, err
 	}
