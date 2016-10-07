@@ -67,22 +67,22 @@ func GetFileContent(communicator Communicator, data interface{}) {
 		communicator.SetSend("error", "Error decoding json:"+err.Error())
 		return
 	}
-	communicator.NewFinishedChannel(ContentFinished)
+	communicator.NewFinishedChannel(FileContentFinished)
 	go func() {
 		githubClient := GetGithubClient(content.AccessToken, communicator)
 		userLogin, err := GetGithubUserLogin(githubClient)
 		if err != nil {
 			communicator.SetSend("logout", "Can't retrieve the authenticated user.")
-			communicator.Finished(ContentFinished)
+			communicator.Finished(FileContentFinished)
 			return
 		}
 		content.Body, err = GetGithubFileContent(githubClient, userLogin, content.RepositoryName, "content/"+content.Title)
 		if err != nil {
 			communicator.SetSend("error", "Can't retrieve the file content.")
-			communicator.Finished(ContentFinished)
+			communicator.Finished(FileContentFinished)
 			return
 		}
 		communicator.SetSend("content set", content)
-		communicator.Finished(ContentFinished)
+		communicator.Finished(FileContentFinished)
 	}()
 }
