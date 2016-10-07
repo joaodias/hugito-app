@@ -2,9 +2,10 @@ package utils_test
 
 import (
 	"errors"
-	utils "github.com/joaodias/hugito-app/utils"
 	"reflect"
 	"testing"
+
+	utils "github.com/joaodias/hugito-app/utils"
 )
 
 // Mock a random reader that returns an error
