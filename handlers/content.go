@@ -86,3 +86,19 @@ func GetFileContent(communicator Communicator, data interface{}) {
 		communicator.Finished(FileContentFinished)
 	}()
 }
+
+// PublishContent publishes the content to github.
+//
+// Happy Path:
+// 1. Decode JSON
+// 2. Get the github authenticated user
+// 3. Publish the cotent of a the file
+// 4. Send Success message to the clien
+func PublishContent(communicator Communicator, data interface{}) {
+	var content Content
+	err := mapstructure.Decode(data, &content)
+	if err != nil {
+		communicator.SetSend("error", "Error decoding json:"+err.Error())
+		return
+	}
+}
