@@ -57,9 +57,8 @@ func (t *Client) FinishForKey(key int) {
 }
 
 func (t *Client) Finished(key int) {
-	go func() {
-		t.FinishedChannels[key] <- true
-	}()
+	t.FinishedChannels[key] <- true
+	t.FinishForKey(key)
 }
 
 func (t *Client) GetOauthConfiguration() *oauth2.Config {
