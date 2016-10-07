@@ -21,6 +21,7 @@ var _ = Describe("Handlers", func() {
 		ContentFinished
 		ValidationFinished
 		FileContentFinished
+		PublishContentFinished
 	)
 
 	Describe("Authentication Handlers", func() {
@@ -459,6 +460,18 @@ var _ = Describe("Handlers", func() {
 					handlers.PublishContent(mClient, "some stuff that looks like an invalid json")
 					Expect(mClient.Name).To(ContainSubstring("error"))
 					Expect(mClient.Data).To(ContainSubstring("Error decoding json:"))
+				})
+			})
+			Context("and the user Login cannot be retrieved", func() {
+				It("should return a logout message to the client", func() {
+					defer testServer.Close()
+					mux.HandleFunc("/user/", func(w http.ResponseWriter, r *http.Request) {
+						fmt.Fprint(w, `someErronicThingHappened`)
+					})
+					handlers.PublishContent(mClient, mockJSONContentList)
+					<-mClient.FinishedChannels[PublishContentFinished]
+					Expect(mClient.Name).To(Equal("logout"))
+					Expect(mClient.Data).To(Equal("Can't retrieve the authenticated user."))
 				})
 			})
 		})

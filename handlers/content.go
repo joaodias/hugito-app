@@ -101,4 +101,14 @@ func PublishContent(communicator Communicator, data interface{}) {
 		communicator.SetSend("error", "Error decoding json:"+err.Error())
 		return
 	}
+	communicator.NewFinishedChannel(PublishContentFinished)
+	go func() {
+		githubClient := GetGithubClient(content.AccessToken, communicator)
+		_, err := GetGithubUserLogin(githubClient)
+		if err != nil {
+			communicator.SetSend("logout", "Can't retrieve the authenticated user.")
+			communicator.Finished(PublishContentFinished)
+			return
+		}
+	}()
 }
