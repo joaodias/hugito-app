@@ -1,6 +1,8 @@
 package handlers
 
 import (
+	"encoding/base64"
+	"fmt"
 	"github.com/google/go-github/github"
 	utils "github.com/joaodias/hugito-app/utils"
 	"golang.org/x/oauth2"
@@ -85,9 +87,14 @@ func GetGithubFileContent(githubClient *github.Client, userLogin string, reposit
 	opt := &github.RepositoryContentGetOptions{}
 	fileContent, _, _, err := githubClient.Repositories.GetContents(userLogin, repositoryName, path, opt)
 	if err != nil {
+		fmt.Print("FILE_CONTENT: ", err)
 		return "", err
 	}
-	return *fileContent.Content, nil
+	decodedContent, err := base64.StdEncoding.DecodeString(*fileContent.Content)
+	if err != nil {
+		return "", err
+	}
+	return string(decodedContent), nil
 }
 
 // IsGithubRepositoryValid checks if a given repository tree matches the
