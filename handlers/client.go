@@ -13,6 +13,8 @@ const (
 	AuthenticationFinished
 	RepositoryFinished
 	ContentFinished
+	ValidationFinished
+	FileContentFinished
 )
 
 // FindHandler returns the Handler related to the given message sent by the client.
@@ -98,9 +100,7 @@ func (socketClient *SocketClient) FinishForKey(key int) {
 // end of an operation to true. This value represents that the operation
 // associated to the given channel is finished.
 func (socketClient *SocketClient) Finished(key int) {
-	go func() {
-		socketClient.finishedChannels[key] <- true
-	}()
+	socketClient.finishedChannels[key] <- true
 }
 
 // GetOauthConfiguration gets the oauth configuration of a given communicator.

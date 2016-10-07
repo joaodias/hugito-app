@@ -1,6 +1,7 @@
 package handlers_test
 
 import (
+	"encoding/base64"
 	"fmt"
 	"github.com/fatih/structs"
 	handlers "github.com/joaodias/hugito-app/handlers"
@@ -18,6 +19,8 @@ var _ = Describe("Handlers", func() {
 		AuthenticationFinished
 		RepositoryFinished
 		ContentFinished
+		ValidationFinished
+		FileContentFinished
 	)
 
 	Describe("Authentication Handlers", func() {
@@ -228,7 +231,7 @@ var _ = Describe("Handlers", func() {
 					handlers.GetRepository(mClient, mockJSONWithValidToken)
 					<-mClient.FinishedChannels[RepositoryFinished]
 					receivedData := mClient.Data.(handlers.Repositories)
-					Expect(mClient.Name).To(ContainSubstring("repository set"))
+					Expect(mClient.Name).To(ContainSubstring("repositories set"))
 					Expect(receivedData.Names).To(Equal([]string{"repo1", "repo2", "repo3"}))
 					Expect(receivedData.AccessToken).To(Equal("90d64460d14870c08c81352a05dedd3465940a7c"))
 				})
@@ -250,7 +253,7 @@ var _ = Describe("Handlers", func() {
 						fmt.Fprint(w, `someErronicThingHappened`)
 					})
 					handlers.ValidateRepository(mClient, mockJSONValidRepo)
-					<-mClient.FinishedChannels[RepositoryFinished]
+					<-mClient.FinishedChannels[ValidationFinished]
 					Expect(mClient.Name).To(Equal("logout"))
 					Expect(mClient.Data).To(Equal("Can't retrieve the authenticated user."))
 				})
@@ -265,7 +268,7 @@ var _ = Describe("Handlers", func() {
 						fmt.Fprint(w, `someErroniousStuff`)
 					})
 					handlers.ValidateRepository(mClient, mockJSONValidRepo)
-					<-mClient.FinishedChannels[RepositoryFinished]
+					<-mClient.FinishedChannels[ValidationFinished]
 					Expect(mClient.Name).To(Equal("error"))
 					Expect(mClient.Data).To(Equal("Can't retrieve selected repository."))
 				})
@@ -280,7 +283,7 @@ var _ = Describe("Handlers", func() {
 						fmt.Fprint(w, `[{"Name":"dir1"}, {"Name":"file1"}, {"Name":"dir2"}]`)
 					})
 					handlers.ValidateRepository(mClient, mockJSONInvalidRepo)
-					<-mClient.FinishedChannels[RepositoryFinished]
+					<-mClient.FinishedChannels[ValidationFinished]
 					Expect(mClient.Name).To(Equal("error"))
 					Expect(mClient.Data).To(Equal("Repository is not valid."))
 				})
@@ -295,7 +298,7 @@ var _ = Describe("Handlers", func() {
 						fmt.Fprint(w, `[{"Name":"content"}, {"Name":"config.toml"}, {"Name":"public"}, {"Name":"themes"}]`)
 					})
 					handlers.ValidateRepository(mClient, mockJSONValidRepo)
-					<-mClient.FinishedChannels[RepositoryFinished]
+					<-mClient.FinishedChannels[ValidationFinished]
 					Expect(mClient.Name).To(Equal("repository validate"))
 					Expect(mClient.Data).To(Equal("Repository is valid."))
 				})
@@ -409,7 +412,7 @@ var _ = Describe("Handlers", func() {
 						fmt.Fprint(w, `someErronicThingHappened`)
 					})
 					handlers.GetFileContent(mClient, mockJSONContent)
-					<-mClient.FinishedChannels[ContentFinished]
+					<-mClient.FinishedChannels[FileContentFinished]
 					Expect(mClient.Name).To(Equal("logout"))
 					Expect(mClient.Data).To(Equal("Can't retrieve the authenticated user."))
 				})
@@ -424,7 +427,7 @@ var _ = Describe("Handlers", func() {
 						fmt.Fprint(w, `someErroniousStuff`)
 					})
 					handlers.GetFileContent(mClient, mockJSONContent)
-					<-mClient.FinishedChannels[ContentFinished]
+					<-mClient.FinishedChannels[FileContentFinished]
 					Expect(mClient.Name).To(Equal("error"))
 					Expect(mClient.Data).To(Equal("Can't retrieve the file content."))
 				})
@@ -436,14 +439,16 @@ var _ = Describe("Handlers", func() {
 						fmt.Fprint(w, `{"Login":"joaodias"}`)
 					})
 					mux.HandleFunc("/repos/joaodias/validatedrepo/contents/content/filename", func(w http.ResponseWriter, r *http.Request) {
-						fmt.Fprint(w, `{"Content":"Really cool content."}`)
+						fmt.Fprint(w, `{"Content":"Cool"}`)
 					})
 					handlers.GetFileContent(mClient, mockJSONContent)
-					<-mClient.FinishedChannels[ContentFinished]
+					<-mClient.FinishedChannels[FileContentFinished]
 					receivedData := mClient.Data.(handlers.Content)
 					Expect(receivedData.RepositoryName).To(Equal("validatedrepo"))
 					Expect(receivedData.Title).To(Equal("filename"))
-					Expect(receivedData.Body).To(Equal("Really cool content."))
+					// Github content is encoded in base64
+					expectedBody, _ := base64.StdEncoding.DecodeString("Cool")
+					Expect(receivedData.Body).To(Equal(string(expectedBody)))
 					Expect(receivedData.AccessToken).To(Equal("90d64460d14870c08c81352a05dedd3465940a7c"))
 				})
 			})
