@@ -141,9 +141,16 @@ func CreateContent(communicator Communicator, data interface{}) {
 	communicator.NewFinishedChannel(CreateContentFinished)
 	go func() {
 		githubClient := GetGithubClient(content.AccessToken, communicator)
-		_, err := GetGithubUserLogin(githubClient)
+		userLogin, err := GetGithubUserLogin(githubClient)
 		if err != nil {
 			communicator.SetSend("logout", "Can't retrieve the authenticated user.")
+			communicator.Finished(CreateContentFinished)
+			return
+		}
+		githubFileContentOpt := GetFileContentOptions(content.CommitMessage, content.Branch, userLogin)
+		err = CreateGithubFileContent(githubClient, githubFileContentOpt, content.RepositoryName, "content/"+content.Title)
+		if err != nil {
+			communicator.SetSend("error", "Unnable to create the content.")
 			communicator.Finished(CreateContentFinished)
 			return
 		}

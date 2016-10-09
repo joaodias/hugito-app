@@ -526,6 +526,21 @@ var _ = Describe("Handlers", func() {
 					Expect(mClient.Data).To(Equal("Can't retrieve the authenticated user."))
 				})
 			})
+			Context("and the content can't be created", func() {
+				It("should return an error message to the client", func() {
+					defer testServer.Close()
+					mux.HandleFunc("/user/", func(w http.ResponseWriter, r *http.Request) {
+						fmt.Fprint(w, `{"Login":"joaodias"}`)
+					})
+					mux.HandleFunc("/repos/joaodias/validatedrepo/contents/content/filename", func(w http.ResponseWriter, r *http.Request) {
+						fmt.Fprint(w, `someErroniousStuff`)
+					})
+					handlers.CreateContent(mClient, mockJSONContent)
+					<-mClient.FinishedChannels[CreateContentFinished]
+					Expect(mClient.Name).To(Equal("error"))
+					Expect(mClient.Data).To(Equal("Unnable to create the content."))
+				})
+			})
 		})
 	})
 })
