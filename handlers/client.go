@@ -16,6 +16,7 @@ const (
 	ValidationFinished
 	FileContentFinished
 	UpdateContentFinished
+	CreateContentFinished
 )
 
 // FindHandler returns the Handler related to the given message sent by the client.

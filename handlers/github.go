@@ -113,6 +113,16 @@ func UpdateGithubFileContent(githubClient *github.Client, opt *github.Repository
 	return nil
 }
 
+// CreateGithubFileContent creates a new Github file content at a given
+// repository and in a given branch.
+func CreateGithubFileContent(githubClient *github.Client, opt *github.RepositoryContentFileOptions, repositoryName string, path string) error {
+	_, _, err := githubClient.Repositories.CreateFile(*opt.Author.Login, repositoryName, path, opt)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 // IsGithubRepositoryValid checks if a given repository tree matches the
 // criteria to be a valid HUGO repository.
 func IsGithubRepositoryValid(repositoryTree []string) bool {

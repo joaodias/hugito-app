@@ -22,6 +22,7 @@ var _ = Describe("Handlers", func() {
 		ValidationFinished
 		FileContentFinished
 		UpdateContentFinished
+		CreateContentFinished
 	)
 
 	Describe("Authentication Handlers", func() {
@@ -502,6 +503,57 @@ var _ = Describe("Handlers", func() {
 					<-mClient.FinishedChannels[UpdateContentFinished]
 					Expect(mClient.Name).To(Equal("content success"))
 					Expect(mClient.Data).To(Equal("Content updated successfully."))
+				})
+			})
+		})
+		Describe("When creating a new github content file", func() {
+			Context("and the JSON is invalid", func() {
+				It("should return an error to the client", func() {
+					handlers.CreateContent(mClient, "some stuff that looks like an invalid json")
+					Expect(mClient.Name).To(ContainSubstring("error"))
+					Expect(mClient.Data).To(ContainSubstring("Error decoding json:"))
+				})
+			})
+			Context("and the user Login cannot be retrieved", func() {
+				It("should return a logout message to the client", func() {
+					defer testServer.Close()
+					mux.HandleFunc("/user/", func(w http.ResponseWriter, r *http.Request) {
+						fmt.Fprint(w, `someErronicThingHappened`)
+					})
+					handlers.CreateContent(mClient, mockJSONContentList)
+					<-mClient.FinishedChannels[CreateContentFinished]
+					Expect(mClient.Name).To(Equal("logout"))
+					Expect(mClient.Data).To(Equal("Can't retrieve the authenticated user."))
+				})
+			})
+			Context("and the content can't be created", func() {
+				It("should return an error message to the client", func() {
+					defer testServer.Close()
+					mux.HandleFunc("/user/", func(w http.ResponseWriter, r *http.Request) {
+						fmt.Fprint(w, `{"Login":"joaodias"}`)
+					})
+					mux.HandleFunc("/repos/joaodias/validatedrepo/contents/content/filename", func(w http.ResponseWriter, r *http.Request) {
+						fmt.Fprint(w, `someErroniousStuff`)
+					})
+					handlers.CreateContent(mClient, mockJSONContent)
+					<-mClient.FinishedChannels[CreateContentFinished]
+					Expect(mClient.Name).To(Equal("error"))
+					Expect(mClient.Data).To(Equal("Unnable to create the content."))
+				})
+			})
+			Context("and the content is successfully created", func() {
+				It("should return a content success message to the client", func() {
+					defer testServer.Close()
+					mux.HandleFunc("/user/", func(w http.ResponseWriter, r *http.Request) {
+						fmt.Fprint(w, `{"Login":"joaodias"}`)
+					})
+					mux.HandleFunc("/repos/joaodias/validatedrepo/contents/content/filename", func(w http.ResponseWriter, r *http.Request) {
+						fmt.Fprint(w, ``)
+					})
+					handlers.CreateContent(mClient, mockJSONContent)
+					<-mClient.FinishedChannels[CreateContentFinished]
+					Expect(mClient.Name).To(Equal("content success"))
+					Expect(mClient.Data).To(Equal("Content created successfully."))
 				})
 			})
 		})
