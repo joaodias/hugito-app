@@ -61,3 +61,26 @@ func TestGetFileContentOptions(t *testing.T) {
 		}
 	}
 }
+
+func TestGetRepositoryContentGetOptions(t *testing.T) {
+	type args struct {
+		branch string
+	}
+	tests := []struct {
+		name string
+		args args
+		want *github.RepositoryContentGetOptions
+	}{
+		{"With branch name", args{"1-cool-branch"}, &github.RepositoryContentGetOptions{
+			Ref: "1-cool-branch",
+		}},
+		{"With default branch name", args{""}, &github.RepositoryContentGetOptions{
+			Ref: "master",
+		}},
+	}
+	for _, tt := range tests {
+		if got := handlers.GetRepositoryContentGetOptions(tt.args.branch); !reflect.DeepEqual(got, tt.want) {
+			t.Errorf("%q. GetRepositoryContentGetOptions() = %v, want %v", tt.name, got, tt.want)
+		}
+	}
+}

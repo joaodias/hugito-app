@@ -25,7 +25,6 @@ var _ = Describe("Handlers", func() {
 		CreateContentFinished
 		RemoveContentFinished
 	)
-
 	Describe("Authentication Handlers", func() {
 		type MockAuthentication struct {
 			Authenticated string `json:"authenticated"`
@@ -99,7 +98,6 @@ var _ = Describe("Handlers", func() {
 			})
 		})
 	})
-
 	Describe("User Handlers", func() {
 		type MockUser struct {
 			Name        string `json:"name"`
@@ -164,7 +162,6 @@ var _ = Describe("Handlers", func() {
 			})
 		})
 	})
-
 	Describe("Repository Handlers", func() {
 		type MockRepositories struct {
 			Names       []string `json:"names"`
@@ -308,7 +305,7 @@ var _ = Describe("Handlers", func() {
 			})
 		})
 	})
-	Describe("Content handlers", func() {
+	Describe("Content Handlers", func() {
 		type MockContentList struct {
 			Name        string   `json:"name"`
 			Titles      []string `json:"title"`

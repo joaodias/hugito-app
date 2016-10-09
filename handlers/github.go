@@ -171,3 +171,14 @@ func GetFileContentOptions(message string, branch string, author string) *github
 		},
 	}
 }
+
+// GetRepositoryContentGetOptions builds a content get oprions given a branch.
+// Usually the content get options can be used with SHA and tag also.
+func GetRepositoryContentGetOptions(branch string) *github.RepositoryContentGetOptions {
+	if branch == "" {
+		branch = DefaultBranch
+	}
+	return &github.RepositoryContentGetOptions{
+		Ref: branch,
+	}
+}
