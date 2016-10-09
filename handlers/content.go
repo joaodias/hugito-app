@@ -4,9 +4,11 @@ import (
 	"github.com/mitchellh/mapstructure"
 )
 
-// ContentList represents the list of content for a given repository name
+// ContentList represents the list of content for a given repository name and
+// branch
 type ContentList struct {
 	Name        string   `json:"name"`
+	Branch      string   `json:"branch"`
 	Titles      []string `json:"title"`
 	AccessToken string   `json:"accessToken"`
 }
@@ -44,7 +46,8 @@ func GetContentList(communicator Communicator, data interface{}) {
 			communicator.Finished(ContentFinished)
 			return
 		}
-		contentList.Titles, err = GetGithubRepositoryTree(githubClient, userLogin, contentList.Name, "content")
+		githubContentGetOpt := GetRepositoryContentGetOptions(contentList.Branch)
+		contentList.Titles, err = GetGithubRepositoryTree(githubClient, userLogin, githubContentGetOpt, contentList.Name, "content")
 		if err != nil {
 			communicator.SetSend("error", "Can't retrieve the content list.")
 			communicator.Finished(ContentFinished)
