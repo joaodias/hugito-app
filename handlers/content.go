@@ -154,5 +154,7 @@ func CreateContent(communicator Communicator, data interface{}) {
 			communicator.Finished(CreateContentFinished)
 			return
 		}
+		communicator.SetSend("content success", "Content created successfully.")
+		communicator.Finished(CreateContentFinished)
 	}()
 }
