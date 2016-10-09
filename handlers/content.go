@@ -158,3 +158,19 @@ func CreateContent(communicator Communicator, data interface{}) {
 		communicator.Finished(CreateContentFinished)
 	}()
 }
+
+// RemoveContent removes an already existent github content file.
+//
+// Happy Path:
+// 1. Decode JSON
+// 2. Get the github authenticated user
+// 3. Remove the content file
+// 4. Send Success message to the client
+func RemoveContent(communicator Communicator, data interface{}) {
+	var content Content
+	err := mapstructure.Decode(data, &content)
+	if err != nil {
+		communicator.SetSend("error", "Error decoding json:"+err.Error())
+		return
+	}
+}
