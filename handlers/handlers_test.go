@@ -593,6 +593,21 @@ var _ = Describe("Handlers", func() {
 					Expect(mClient.Data).To(Equal("Unnable to remove the content."))
 				})
 			})
+			Context("and the content is successfully removed", func() {
+				It("should return a content success message to the client", func() {
+					defer testServer.Close()
+					mux.HandleFunc("/user/", func(w http.ResponseWriter, r *http.Request) {
+						fmt.Fprint(w, `{"Login":"joaodias"}`)
+					})
+					mux.HandleFunc("/repos/joaodias/validatedrepo/contents/content/filename", func(w http.ResponseWriter, r *http.Request) {
+						fmt.Fprint(w, ``)
+					})
+					handlers.RemoveContent(mClient, mockJSONContent)
+					<-mClient.FinishedChannels[RemoveContentFinished]
+					Expect(mClient.Name).To(Equal("content success"))
+					Expect(mClient.Data).To(Equal("Content removed successfully."))
+				})
+			})
 		})
 	})
 })

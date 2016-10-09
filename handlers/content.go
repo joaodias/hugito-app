@@ -189,5 +189,7 @@ func RemoveContent(communicator Communicator, data interface{}) {
 			communicator.Finished(RemoveContentFinished)
 			return
 		}
+		communicator.SetSend("content success", "Content removed successfully.")
+		communicator.Finished(RemoveContentFinished)
 	}()
 }
