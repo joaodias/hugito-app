@@ -17,6 +17,7 @@ const (
 	FileContentFinished
 	UpdateContentFinished
 	CreateContentFinished
+	RemoveContentFinished
 )
 
 // FindHandler returns the Handler related to the given message sent by the client.

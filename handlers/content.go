@@ -173,4 +173,14 @@ func RemoveContent(communicator Communicator, data interface{}) {
 		communicator.SetSend("error", "Error decoding json:"+err.Error())
 		return
 	}
+	communicator.NewFinishedChannel(RemoveContentFinished)
+	go func() {
+		githubClient := GetGithubClient(content.AccessToken, communicator)
+		_, err := GetGithubUserLogin(githubClient)
+		if err != nil {
+			communicator.SetSend("logout", "Can't retrieve the authenticated user.")
+			communicator.Finished(RemoveContentFinished)
+			return
+		}
+	}()
 }
