@@ -176,9 +176,16 @@ func RemoveContent(communicator Communicator, data interface{}) {
 	communicator.NewFinishedChannel(RemoveContentFinished)
 	go func() {
 		githubClient := GetGithubClient(content.AccessToken, communicator)
-		_, err := GetGithubUserLogin(githubClient)
+		userLogin, err := GetGithubUserLogin(githubClient)
 		if err != nil {
 			communicator.SetSend("logout", "Can't retrieve the authenticated user.")
+			communicator.Finished(RemoveContentFinished)
+			return
+		}
+		githubFileContentOpt := GetFileContentOptions(content.CommitMessage, content.Branch, userLogin)
+		err = RemoveGithubFileContent(githubClient, githubFileContentOpt, content.RepositoryName, "content/"+content.Title)
+		if err != nil {
+			communicator.SetSend("error", "Unnable to remove the content.")
 			communicator.Finished(RemoveContentFinished)
 			return
 		}
