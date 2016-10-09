@@ -21,7 +21,7 @@ var _ = Describe("Handlers", func() {
 		ContentFinished
 		ValidationFinished
 		FileContentFinished
-		PublishContentFinished
+		UpdateContentFinished
 	)
 
 	Describe("Authentication Handlers", func() {
@@ -469,7 +469,7 @@ var _ = Describe("Handlers", func() {
 						fmt.Fprint(w, `someErronicThingHappened`)
 					})
 					handlers.UpdateContent(mClient, mockJSONContentList)
-					<-mClient.FinishedChannels[PublishContentFinished]
+					<-mClient.FinishedChannels[UpdateContentFinished]
 					Expect(mClient.Name).To(Equal("logout"))
 					Expect(mClient.Data).To(Equal("Can't retrieve the authenticated user."))
 				})
@@ -484,9 +484,24 @@ var _ = Describe("Handlers", func() {
 						fmt.Fprint(w, `someErroniousStuff`)
 					})
 					handlers.UpdateContent(mClient, mockJSONContent)
-					<-mClient.FinishedChannels[PublishContentFinished]
+					<-mClient.FinishedChannels[UpdateContentFinished]
 					Expect(mClient.Name).To(Equal("error"))
 					Expect(mClient.Data).To(Equal("Unnable to update the content."))
+				})
+			})
+			Context("and the content is successfully updated", func() {
+				It("should return a content success message to the client", func() {
+					defer testServer.Close()
+					mux.HandleFunc("/user/", func(w http.ResponseWriter, r *http.Request) {
+						fmt.Fprint(w, `{"Login":"joaodias"}`)
+					})
+					mux.HandleFunc("/repos/joaodias/validatedrepo/contents/content/filename", func(w http.ResponseWriter, r *http.Request) {
+						fmt.Fprint(w, ``)
+					})
+					handlers.UpdateContent(mClient, mockJSONContent)
+					<-mClient.FinishedChannels[UpdateContentFinished]
+					Expect(mClient.Name).To(Equal("content success"))
+					Expect(mClient.Data).To(Equal("Content updated successfully."))
 				})
 			})
 		})

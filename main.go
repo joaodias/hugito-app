@@ -12,7 +12,7 @@ func main() {
 	router.Handle("repository validate", handlers.ValidateRepository)
 	router.Handle("content list", handlers.GetContentList)
 	router.Handle("content get", handlers.GetFileContent)
-	router.Handle("content update", handlers.PublishContent)
+	router.Handle("content update", handlers.UpdateContent)
 	router.Handle("user get", handlers.GetUser)
 	router.Handle("authenticate", handlers.Authenticate)
 	http.Handle("/", router)

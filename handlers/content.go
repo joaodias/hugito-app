@@ -11,8 +11,6 @@ type ContentList struct {
 	AccessToken string   `json:"accessToken"`
 }
 
-// TODO: Update this structure to take more values and support what I want to the content file options. Things like branch and commit message are important in this structure.
-
 // Content represents the information exchanged between the server and the client.
 type Content struct {
 	RepositoryName string `json:"repositoryName"`
@@ -105,22 +103,23 @@ func UpdateContent(communicator Communicator, data interface{}) {
 		communicator.SetSend("error", "Error decoding json:"+err.Error())
 		return
 	}
-	communicator.NewFinishedChannel(PublishContentFinished)
+	communicator.NewFinishedChannel(UpdateContentFinished)
 	go func() {
 		githubClient := GetGithubClient(content.AccessToken, communicator)
 		userLogin, err := GetGithubUserLogin(githubClient)
 		if err != nil {
 			communicator.SetSend("logout", "Can't retrieve the authenticated user.")
-			communicator.Finished(PublishContentFinished)
+			communicator.Finished(UpdateContentFinished)
 			return
 		}
 		githubFileContentOpt := GetFileContentOptions(content.CommitMessage, content.Branch, userLogin)
 		err = UpdateGithubFileContent(githubClient, githubFileContentOpt, content.RepositoryName, "content/"+content.Title)
 		if err != nil {
 			communicator.SetSend("error", "Unnable to update the content.")
-			communicator.Finished(PublishContentFinished)
+			communicator.Finished(UpdateContentFinished)
 			return
 		}
-		// TODO: Send the real shiat to the client.
+		communicator.SetSend("content success", "Content updated successfully.")
+		communicator.Finished(UpdateContentFinished)
 	}()
 }
