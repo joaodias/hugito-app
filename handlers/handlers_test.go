@@ -505,5 +505,14 @@ var _ = Describe("Handlers", func() {
 				})
 			})
 		})
+		Describe("When creating a new github content file", func() {
+			Context("and the JSON is invalid", func() {
+				It("should return an error to the client", func() {
+					handlers.CreateContent(mClient, "some stuff that looks like an invalid json")
+					Expect(mClient.Name).To(ContainSubstring("error"))
+					Expect(mClient.Data).To(ContainSubstring("Error decoding json:"))
+				})
+			})
+		})
 	})
 })

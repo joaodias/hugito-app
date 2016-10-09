@@ -95,7 +95,7 @@ func GetFileContent(communicator Communicator, data interface{}) {
 // 1. Decode JSON
 // 2. Get the github authenticated user
 // 3. Update the cotent of a the file
-// 4. Send Success message to the clien
+// 4. Send Success message to the client
 func UpdateContent(communicator Communicator, data interface{}) {
 	var content Content
 	err := mapstructure.Decode(data, &content)
@@ -122,4 +122,20 @@ func UpdateContent(communicator Communicator, data interface{}) {
 		communicator.SetSend("content success", "Content updated successfully.")
 		communicator.Finished(UpdateContentFinished)
 	}()
+}
+
+// CreateContent creates a new github content file.
+//
+// Happy Path:
+// 1. Decode JSON
+// 2. Get the github authenticated user
+// 3. Create the content file
+// 4. Send Success message to the client
+func CreateContent(communicator Communicator, data interface{}) {
+	var content Content
+	err := mapstructure.Decode(data, &content)
+	if err != nil {
+		communicator.SetSend("error", "Error decoding json:"+err.Error())
+		return
+	}
 }
