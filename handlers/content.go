@@ -16,6 +16,8 @@ type Content struct {
 	RepositoryName string `json:"repositoryName"`
 	Title          string `json:"title"`
 	Body           string `json:"body"`
+	CommitMessage  string `json:"commitMessage"`
+	Branch         string `json:"branch"`
 	AccessToken    string `json:"accessToken"`
 }
 
@@ -84,5 +86,40 @@ func GetFileContent(communicator Communicator, data interface{}) {
 		}
 		communicator.SetSend("content set", content)
 		communicator.Finished(FileContentFinished)
+	}()
+}
+
+// UpdateContent updates the content of a github file.
+//
+// Happy Path:
+// 1. Decode JSON
+// 2. Get the github authenticated user
+// 3. Update the cotent of a the file
+// 4. Send Success message to the clien
+func UpdateContent(communicator Communicator, data interface{}) {
+	var content Content
+	err := mapstructure.Decode(data, &content)
+	if err != nil {
+		communicator.SetSend("error", "Error decoding json:"+err.Error())
+		return
+	}
+	communicator.NewFinishedChannel(UpdateContentFinished)
+	go func() {
+		githubClient := GetGithubClient(content.AccessToken, communicator)
+		userLogin, err := GetGithubUserLogin(githubClient)
+		if err != nil {
+			communicator.SetSend("logout", "Can't retrieve the authenticated user.")
+			communicator.Finished(UpdateContentFinished)
+			return
+		}
+		githubFileContentOpt := GetFileContentOptions(content.CommitMessage, content.Branch, userLogin)
+		err = UpdateGithubFileContent(githubClient, githubFileContentOpt, content.RepositoryName, "content/"+content.Title)
+		if err != nil {
+			communicator.SetSend("error", "Unnable to update the content.")
+			communicator.Finished(UpdateContentFinished)
+			return
+		}
+		communicator.SetSend("content success", "Content updated successfully.")
+		communicator.Finished(UpdateContentFinished)
 	}()
 }
