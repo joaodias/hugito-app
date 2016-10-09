@@ -75,8 +75,7 @@ func GetGithubRepositories(githubClient *github.Client) ([]string, error) {
 
 // GetGithubRepositoryTree gets the tree of files in the given path of a
 // repository of a given user.
-func GetGithubRepositoryTree(githubClient *github.Client, userLogin string, repositoryName string, path string) ([]string, error) {
-	opt := &github.RepositoryContentGetOptions{}
+func GetGithubRepositoryTree(githubClient *github.Client, userLogin string, opt *github.RepositoryContentGetOptions, repositoryName string, path string) ([]string, error) {
 	_, githubRepositoryTree, _, err := githubClient.Repositories.GetContents(userLogin, repositoryName, path, opt)
 	if err != nil {
 		return []string{}, err
@@ -169,5 +168,16 @@ func GetFileContentOptions(message string, branch string, author string) *github
 		Committer: &github.CommitAuthor{
 			Login: &author,
 		},
+	}
+}
+
+// GetRepositoryContentGetOptions builds a content get oprions given a branch.
+// Usually the content get options can be used with SHA and tag also.
+func GetRepositoryContentGetOptions(branch string) *github.RepositoryContentGetOptions {
+	if branch == "" {
+		branch = DefaultBranch
+	}
+	return &github.RepositoryContentGetOptions{
+		Ref: branch,
 	}
 }

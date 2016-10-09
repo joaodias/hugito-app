@@ -4,10 +4,19 @@ import (
 	"github.com/mitchellh/mapstructure"
 )
 
-// Repositories represents the repository parameters exchanged between the server and the client.
+// Repositories represents the repository parameters exchanged between the
+// server and the client.
 type Repositories struct {
 	Names       []string `json:"names"`
 	AccessToken string   `json:"accessToken"`
+}
+
+// Repository represents a single repository exchanded between the client and
+// the server.
+type Repository struct {
+	Name        string `json:"name"`
+	Branch      string `json:"branch"`
+	AccessToken string `json:"accessToken"`
 }
 
 // GetRepository gets the repositories for an authorized user.
@@ -47,10 +56,6 @@ func GetRepository(communicator Communicator, data interface{}) {
 // 4. Check if the given file structure contains the reference file structure.
 // 5. Send a repository validate message to the client
 func ValidateRepository(communicator Communicator, data interface{}) {
-	type Repository struct {
-		Name        string `json:"name"`
-		AccessToken string `json:"accessToken"`
-	}
 	var repository Repository
 	err := mapstructure.Decode(data, &repository)
 	if err != nil {
@@ -66,7 +71,8 @@ func ValidateRepository(communicator Communicator, data interface{}) {
 			communicator.Finished(ValidationFinished)
 			return
 		}
-		repositoryTree, err := GetGithubRepositoryTree(githubClient, userLogin, repository.Name, "")
+		githubContentGetOpt := GetRepositoryContentGetOptions(repository.Branch)
+		repositoryTree, err := GetGithubRepositoryTree(githubClient, userLogin, githubContentGetOpt, repository.Name, "")
 		if err != nil {
 			communicator.SetSend("error", "Can't retrieve selected repository.")
 			communicator.Finished(ValidationFinished)
