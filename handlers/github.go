@@ -8,6 +8,13 @@ import (
 	"net/http"
 )
 
+// Default values to use with the github wrapper.
+const (
+	DefaultCommitMessage = "Updated by Hugito"
+	DefaultBranch        = "master"
+	DefaultAuthor        = "Hugito"
+)
+
 // GithubWrapper wraps the github methods from the Github API. All the needed mehtods are wrapped for easier mocking
 type GithubWrapper interface {
 	GetNewClienter() NewClienter
@@ -95,6 +102,17 @@ func GetGithubFileContent(githubClient *github.Client, userLogin string, reposit
 	return string(decodedContent), nil
 }
 
+// UpdateGithubFileContent updates the content of an already existent file in
+// Github. A github content file object stucture is passed to improve
+// testability, flexibility and also to improve the readability of the method.
+func UpdateGithubFileContent(githubClient *github.Client, opt *github.RepositoryContentFileOptions, repositoryName string, path string) error {
+	_, _, err := githubClient.Repositories.UpdateFile(*opt.Author.Login, repositoryName, path, opt)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 // IsGithubRepositoryValid checks if a given repository tree matches the
 // criteria to be a valid HUGO repository.
 func IsGithubRepositoryValid(repositoryTree []string) bool {
@@ -107,4 +125,29 @@ func IsGithubRepositoryValid(repositoryTree []string) bool {
 // wrapper to the api to improve testability and flexibility.
 func (socketClient *SocketClient) GetNewClienter() NewClienter {
 	return github.NewClient
+}
+
+// GetFileContentOptions builds a file content option structure given a set of
+// parameters. SHA is ignored and Commiter is interpreted as the same role as
+// Author. For the time being The CommitAuthor just consists of the Login field.
+func GetFileContentOptions(message string, branch string, author string) *github.RepositoryContentFileOptions {
+	if message == "" {
+		message = DefaultCommitMessage
+	}
+	if author == "" {
+		author = DefaultAuthor
+	}
+	if branch == "" {
+		branch = DefaultBranch
+	}
+	return &github.RepositoryContentFileOptions{
+		Message: &message,
+		Branch:  &branch,
+		Author: &github.CommitAuthor{
+			Login: &author,
+		},
+		Committer: &github.CommitAuthor{
+			Login: &author,
+		},
+	}
 }

@@ -454,10 +454,10 @@ var _ = Describe("Handlers", func() {
 				})
 			})
 		})
-		Describe("When publishing the content of a github content file", func() {
+		Describe("When updating the content of a github content file", func() {
 			Context("and the JSON is invalid", func() {
 				It("should return an error to the client", func() {
-					handlers.PublishContent(mClient, "some stuff that looks like an invalid json")
+					handlers.UpdateContent(mClient, "some stuff that looks like an invalid json")
 					Expect(mClient.Name).To(ContainSubstring("error"))
 					Expect(mClient.Data).To(ContainSubstring("Error decoding json:"))
 				})
@@ -468,10 +468,25 @@ var _ = Describe("Handlers", func() {
 					mux.HandleFunc("/user/", func(w http.ResponseWriter, r *http.Request) {
 						fmt.Fprint(w, `someErronicThingHappened`)
 					})
-					handlers.PublishContent(mClient, mockJSONContentList)
+					handlers.UpdateContent(mClient, mockJSONContentList)
 					<-mClient.FinishedChannels[PublishContentFinished]
 					Expect(mClient.Name).To(Equal("logout"))
 					Expect(mClient.Data).To(Equal("Can't retrieve the authenticated user."))
+				})
+			})
+			Context("and the content can't be updated", func() {
+				It("should return an error message to the client", func() {
+					defer testServer.Close()
+					mux.HandleFunc("/user/", func(w http.ResponseWriter, r *http.Request) {
+						fmt.Fprint(w, `{"Login":"joaodias"}`)
+					})
+					mux.HandleFunc("/repos/joaodias/validatedrepo/contents/content/filename", func(w http.ResponseWriter, r *http.Request) {
+						fmt.Fprint(w, `someErroniousStuff`)
+					})
+					handlers.UpdateContent(mClient, mockJSONContent)
+					<-mClient.FinishedChannels[PublishContentFinished]
+					Expect(mClient.Name).To(Equal("error"))
+					Expect(mClient.Data).To(Equal("Unnable to update the content."))
 				})
 			})
 		})
