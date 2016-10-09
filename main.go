@@ -14,6 +14,7 @@ func main() {
 	router.Handle("content get", handlers.GetFileContent)
 	router.Handle("content create", handlers.GetFileContent)
 	router.Handle("content update", handlers.UpdateContent)
+	router.Handle("content remove", handlers.RemoveContent)
 	router.Handle("user get", handlers.GetUser)
 	router.Handle("authenticate", handlers.Authenticate)
 	http.Handle("/", router)

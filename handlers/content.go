@@ -158,3 +158,38 @@ func CreateContent(communicator Communicator, data interface{}) {
 		communicator.Finished(CreateContentFinished)
 	}()
 }
+
+// RemoveContent removes an already existent github content file.
+//
+// Happy Path:
+// 1. Decode JSON
+// 2. Get the github authenticated user
+// 3. Remove the content file
+// 4. Send Success message to the client
+func RemoveContent(communicator Communicator, data interface{}) {
+	var content Content
+	err := mapstructure.Decode(data, &content)
+	if err != nil {
+		communicator.SetSend("error", "Error decoding json:"+err.Error())
+		return
+	}
+	communicator.NewFinishedChannel(RemoveContentFinished)
+	go func() {
+		githubClient := GetGithubClient(content.AccessToken, communicator)
+		userLogin, err := GetGithubUserLogin(githubClient)
+		if err != nil {
+			communicator.SetSend("logout", "Can't retrieve the authenticated user.")
+			communicator.Finished(RemoveContentFinished)
+			return
+		}
+		githubFileContentOpt := GetFileContentOptions(content.CommitMessage, content.Branch, userLogin)
+		err = RemoveGithubFileContent(githubClient, githubFileContentOpt, content.RepositoryName, "content/"+content.Title)
+		if err != nil {
+			communicator.SetSend("error", "Unnable to remove the content.")
+			communicator.Finished(RemoveContentFinished)
+			return
+		}
+		communicator.SetSend("content success", "Content removed successfully.")
+		communicator.Finished(RemoveContentFinished)
+	}()
+}
