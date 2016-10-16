@@ -150,14 +150,15 @@ var _ = Describe("Handlers", func() {
 				It("should return a user set message to the client", func() {
 					defer testServer.Close()
 					mux.HandleFunc("/user/", func(w http.ResponseWriter, r *http.Request) {
-						fmt.Fprint(w, `{"Name":"joaodias"}`)
+						fmt.Fprint(w, `{"Name":"João Dias","Login":"joaodias", "Email":"diasjoaoac@gmail.com"}`)
 					})
 					handlers.GetUser(mClient, mockJSONWithValidToken)
 					<-mClient.FinishedChannels[UserFinished]
 					receivedData := mClient.Data.(handlers.User)
 					Expect(mClient.Name).To(ContainSubstring("user set"))
-					Expect(receivedData.Name).To(Equal("joaodias"))
-					Expect(receivedData.AccessToken).To(Equal("90d64460d14870c08c81352a05dedd3465940a7c"))
+					Expect(receivedData.Name).To(Equal("João Dias"))
+					Expect(receivedData.Login).To(Equal("joaodias"))
+					Expect(receivedData.Email).To(Equal("diasjoaoac@gmail.com"))
 				})
 			})
 		})
@@ -237,7 +238,6 @@ var _ = Describe("Handlers", func() {
 				})
 			})
 		})
-
 		Describe("When checking the validity of a repository", func() {
 			Context("and the JSON is invalid", func() {
 				It("should return an error to the client", func() {
@@ -311,10 +311,23 @@ var _ = Describe("Handlers", func() {
 			Titles      []string `json:"title"`
 			AccessToken string   `json:"accessToken"`
 		}
+		type MockAuthor struct {
+			Name  string `json:"name"`
+			Email string `json:"email"`
+			Login string `json:"login"`
+		}
+		type MockCommit struct {
+			SHA        string `json:"sha"`
+			Message    string `json:"commitMessage"`
+			URL        string `json:"url"`
+			MockAuthor `json:"author"`
+		}
 		type MockContent struct {
 			RepositoryName string `json:"repositoryName"`
-			Title          string `json:"title"`
-			Body           string `json:"body"`
+			Branch         string `json:"branch"`
+			Title          string `json:"branch"`
+			Body           string `json:"content"`
+			MockCommit     `json:"commit"`
 			AccessToken    string `json:"accessToken"`
 		}
 		var (
@@ -323,6 +336,8 @@ var _ = Describe("Handlers", func() {
 			testServer          *httptest.Server
 			mockContentList     *MockContentList
 			mockJSONContentList map[string]interface{}
+			mockAuthor          *MockAuthor
+			mockCommit          *MockCommit
 			mockContent         *MockContent
 			mockJSONContent     map[string]interface{}
 		)
@@ -341,7 +356,9 @@ var _ = Describe("Handlers", func() {
 			}
 			mockContentList = &MockContentList{Name: "validatedrepo", Titles: []string{""}, AccessToken: "90d64460d14870c08c81352a05dedd3465940a7c"}
 			mockJSONContentList = structs.Map(mockContentList)
-			mockContent = &MockContent{RepositoryName: "validatedrepo", Title: "filename", Body: "", AccessToken: "90d64460d14870c08c81352a05dedd3465940a7c"}
+			mockAuthor = &MockAuthor{}
+			mockCommit = &MockCommit{}
+			mockContent = &MockContent{RepositoryName: "validatedrepo", Branch: "one-cool-branch", Title: "filename", Body: "cool content", AccessToken: "90d64460d14870c08c81352a05dedd3465940a7c"}
 			mockJSONContent = structs.Map(mockContent)
 		})
 		Describe("When getting a list of a content files", func() {
@@ -390,6 +407,7 @@ var _ = Describe("Handlers", func() {
 					})
 					handlers.GetContentList(mClient, mockJSONContentList)
 					<-mClient.FinishedChannels[ContentFinished]
+					Expect(mClient.Name).To(Equal("content list"))
 					receivedData := mClient.Data.(handlers.ContentList)
 					Expect(receivedData.Name).To(Equal("validatedrepo"))
 					Expect(receivedData.Titles).To(Equal([]string{"Content File 1", "Content File 2"}))
@@ -443,6 +461,7 @@ var _ = Describe("Handlers", func() {
 					})
 					handlers.GetFileContent(mClient, mockJSONContent)
 					<-mClient.FinishedChannels[FileContentFinished]
+					Expect(mClient.Name).To(Equal("content set"))
 					receivedData := mClient.Data.(handlers.Content)
 					Expect(receivedData.RepositoryName).To(Equal("validatedrepo"))
 					Expect(receivedData.Title).To(Equal("filename"))
@@ -473,13 +492,31 @@ var _ = Describe("Handlers", func() {
 					Expect(mClient.Data).To(Equal("Can't retrieve the authenticated user."))
 				})
 			})
+			Context("and the content information can't be retrieved", func() {
+				It("should return an error message to the client", func() {
+					defer testServer.Close()
+					mux.HandleFunc("/user/", func(w http.ResponseWriter, r *http.Request) {
+						fmt.Fprint(w, `{"Name":"João Dias","Login":"joaodias", "Email":"diasjoaoac@gmail.com"}`)
+					})
+					mux.HandleFunc("/repos/joaodias/validatedrepo/contents/content/filename", func(w http.ResponseWriter, r *http.Request) {
+						fmt.Fprint(w, `someErroniousStuff`)
+					})
+					handlers.UpdateContent(mClient, mockJSONContent)
+					<-mClient.FinishedChannels[UpdateContentFinished]
+					Expect(mClient.Name).To(Equal("error"))
+					Expect(mClient.Data).To(Equal("Unnable to get content information."))
+				})
+			})
 			Context("and the content can't be updated", func() {
 				It("should return an error message to the client", func() {
 					defer testServer.Close()
 					mux.HandleFunc("/user/", func(w http.ResponseWriter, r *http.Request) {
-						fmt.Fprint(w, `{"Login":"joaodias"}`)
+						fmt.Fprint(w, `{"Name":"João Dias","Login":"joaodias", "Email":"diasjoaoac@gmail.com"}`)
 					})
 					mux.HandleFunc("/repos/joaodias/validatedrepo/contents/content/filename", func(w http.ResponseWriter, r *http.Request) {
+						if r.Method == "GET" {
+							fmt.Fprint(w, `{"SHA":"1234"}`)
+						}
 						fmt.Fprint(w, `someErroniousStuff`)
 					})
 					handlers.UpdateContent(mClient, mockJSONContent)
@@ -492,15 +529,18 @@ var _ = Describe("Handlers", func() {
 				It("should return a content success message to the client", func() {
 					defer testServer.Close()
 					mux.HandleFunc("/user/", func(w http.ResponseWriter, r *http.Request) {
-						fmt.Fprint(w, `{"Login":"joaodias"}`)
+						fmt.Fprint(w, `{"Name":"João Dias","Login":"joaodias", "Email":"diasjoaoac@gmail.com"}`)
 					})
 					mux.HandleFunc("/repos/joaodias/validatedrepo/contents/content/filename", func(w http.ResponseWriter, r *http.Request) {
+						if r.Method == "GET" {
+							fmt.Fprint(w, `{"SHA":"1234"}`)
+						}
 						fmt.Fprint(w, ``)
 					})
 					handlers.UpdateContent(mClient, mockJSONContent)
 					<-mClient.FinishedChannels[UpdateContentFinished]
-					Expect(mClient.Name).To(Equal("content success"))
-					Expect(mClient.Data).To(Equal("Content updated successfully."))
+					Expect(mClient.Name).To(Equal("content update"))
+					Expect(mClient.Data).To(Equal("Content Successfully Published."))
 				})
 			})
 		})
@@ -528,10 +568,10 @@ var _ = Describe("Handlers", func() {
 				It("should return an error message to the client", func() {
 					defer testServer.Close()
 					mux.HandleFunc("/user/", func(w http.ResponseWriter, r *http.Request) {
-						fmt.Fprint(w, `{"Login":"joaodias"}`)
+						fmt.Fprint(w, `{"Name":"João Dias","Login":"joaodias", "Email":"diasjoaoac@gmail.com"}`)
 					})
 					mux.HandleFunc("/repos/joaodias/validatedrepo/contents/content/filename", func(w http.ResponseWriter, r *http.Request) {
-						fmt.Fprint(w, `someErroniousStuff`)
+						fmt.Fprint(w, `ErroniousStuff`)
 					})
 					handlers.CreateContent(mClient, mockJSONContent)
 					<-mClient.FinishedChannels[CreateContentFinished]
@@ -543,15 +583,23 @@ var _ = Describe("Handlers", func() {
 				It("should return a content success message to the client", func() {
 					defer testServer.Close()
 					mux.HandleFunc("/user/", func(w http.ResponseWriter, r *http.Request) {
-						fmt.Fprint(w, `{"Login":"joaodias"}`)
+						fmt.Fprint(w, `{"Name":"João Dias","Login":"joaodias", "Email":"diasjoaoac@gmail.com"}`)
 					})
 					mux.HandleFunc("/repos/joaodias/validatedrepo/contents/content/filename", func(w http.ResponseWriter, r *http.Request) {
-						fmt.Fprint(w, ``)
+						fmt.Fprint(w, `{"Commit":{"SHA":"1234","Author":{"Name":"João Dias","Username":"joaodias","Email":"diasjoaoac@gmail.com"}}}`)
 					})
 					handlers.CreateContent(mClient, mockJSONContent)
 					<-mClient.FinishedChannels[CreateContentFinished]
-					Expect(mClient.Name).To(Equal("content success"))
-					Expect(mClient.Data).To(Equal("Content created successfully."))
+					receivedData := mClient.Data.(handlers.Content)
+					Expect(mClient.Name).To(Equal("content create"))
+					Expect(receivedData.RepositoryName).To(Equal("validatedrepo"))
+					Expect(receivedData.Branch).To(Equal("one-cool-branch"))
+					Expect(receivedData.Title).To(Equal("filename"))
+					Expect(receivedData.Body).To(Equal("cool content"))
+					Expect(receivedData.Commit.SHA).To(Equal("1234"))
+					Expect(receivedData.Commit.Name).To(Equal("João Dias"))
+					Expect(receivedData.Commit.Email).To(Equal("diasjoaoac@gmail.com"))
+					Expect(receivedData.AccessToken).To(Equal("90d64460d14870c08c81352a05dedd3465940a7c"))
 				})
 			})
 		})
@@ -575,13 +623,31 @@ var _ = Describe("Handlers", func() {
 					Expect(mClient.Data).To(Equal("Can't retrieve the authenticated user."))
 				})
 			})
+			Context("and the sha can't be retrieved", func() {
+				It("should return an error message to the client", func() {
+					defer testServer.Close()
+					mux.HandleFunc("/user/", func(w http.ResponseWriter, r *http.Request) {
+						fmt.Fprint(w, `{"Name":"João Dias","Login":"joaodias", "Email":"diasjoaoac@gmail.com"}`)
+					})
+					mux.HandleFunc("/repos/joaodias/validatedrepo/contents/content/filename", func(w http.ResponseWriter, r *http.Request) {
+						fmt.Fprint(w, `someErroniousStuff`)
+					})
+					handlers.RemoveContent(mClient, mockJSONContent)
+					<-mClient.FinishedChannels[RemoveContentFinished]
+					Expect(mClient.Name).To(Equal("error"))
+					Expect(mClient.Data).To(Equal("Unnable to get content information."))
+				})
+			})
 			Context("and the content can't be removed", func() {
 				It("should return an error message to the client", func() {
 					defer testServer.Close()
 					mux.HandleFunc("/user/", func(w http.ResponseWriter, r *http.Request) {
-						fmt.Fprint(w, `{"Login":"joaodias"}`)
+						fmt.Fprint(w, `{"Name":"João Dias","Login":"joaodias", "Email":"diasjoaoac@gmail.com"}`)
 					})
 					mux.HandleFunc("/repos/joaodias/validatedrepo/contents/content/filename", func(w http.ResponseWriter, r *http.Request) {
+						if r.Method == "GET" {
+							fmt.Fprint(w, `{"SHA":"1234"}`)
+						}
 						fmt.Fprint(w, `someErroniousStuff`)
 					})
 					handlers.RemoveContent(mClient, mockJSONContent)
@@ -594,15 +660,23 @@ var _ = Describe("Handlers", func() {
 				It("should return a content success message to the client", func() {
 					defer testServer.Close()
 					mux.HandleFunc("/user/", func(w http.ResponseWriter, r *http.Request) {
-						fmt.Fprint(w, `{"Login":"joaodias"}`)
+						fmt.Fprint(w, `{"Name":"João Dias","Login":"joaodias", "Email":"diasjoaoac@gmail.com"}`)
 					})
 					mux.HandleFunc("/repos/joaodias/validatedrepo/contents/content/filename", func(w http.ResponseWriter, r *http.Request) {
+						if r.Method == "GET" {
+							fmt.Fprint(w, `{"SHA":"1234"}`)
+						}
 						fmt.Fprint(w, ``)
 					})
 					handlers.RemoveContent(mClient, mockJSONContent)
 					<-mClient.FinishedChannels[RemoveContentFinished]
-					Expect(mClient.Name).To(Equal("content success"))
-					Expect(mClient.Data).To(Equal("Content removed successfully."))
+					receivedData := mClient.Data.(handlers.Content)
+					Expect(mClient.Name).To(Equal("content remove"))
+					Expect(receivedData.RepositoryName).To(Equal("validatedrepo"))
+					Expect(receivedData.Branch).To(Equal("one-cool-branch"))
+					Expect(receivedData.Title).To(Equal("filename"))
+					Expect(receivedData.Body).To(Equal(""))
+					Expect(receivedData.AccessToken).To(Equal("90d64460d14870c08c81352a05dedd3465940a7c"))
 				})
 			})
 		})
