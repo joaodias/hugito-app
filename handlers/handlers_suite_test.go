@@ -15,54 +15,82 @@ func TestHandlers(t *testing.T) {
 	RunSpecs(t, "Handlers Suite")
 }
 
-// This method diserves a test for itself. I think it as some sensible logic
-// that looks like to be better tested with a table test.
 func TestGetFileContentOptions(t *testing.T) {
-	DefaultCommitMessage := "Updated by Hugito"
-	DefaultBranch := "master"
-	DefaultAuthor := "Hugito"
-	mockMessage := "Cool message"
-	mockBranch := "1-cool-branch"
-	mockAuthor := "joaodias"
+	defaultBranch := handlers.DefaultBranch
+	defaultCommitMessage := handlers.DefaultCommitMessage
+	defaultContentBody := handlers.DefaultContentBody
+	user := handlers.User{
+		Name:  "João Dias",
+		Email: "diasjoaoac@gmail.com",
+		Login: "joaodias",
+	}
+	content := handlers.Content{
+		Commit: handlers.Commit{
+			Message: "Cool Message",
+			SHA:     "1234",
+		},
+		Branch: "cool-branch",
+		Body:   "cool content",
+	}
+	incompleteContent := handlers.Content{
+		Commit: handlers.Commit{
+			Message: "",
+			SHA:     "",
+		},
+		Branch: "",
+		Body:   "",
+	}
 	type args struct {
-		message string
-		branch  string
-		author  string
+		user    handlers.User
+		content handlers.Content
 	}
 	tests := []struct {
 		name string
 		args args
 		want *github.RepositoryContentFileOptions
 	}{
-		{"With all parameters provided", args{mockMessage, mockBranch, mockAuthor}, &github.RepositoryContentFileOptions{
-			Message: &mockMessage,
-			Branch:  &mockBranch,
+		{"With all the fields provided", args{user, content}, &github.RepositoryContentFileOptions{
+			Message: &content.Message,
+			Branch:  &content.Branch,
+			Content: []byte(content.Body),
+			SHA:     &content.SHA,
 			Author: &github.CommitAuthor{
-				Login: &mockAuthor,
+				Login: &user.Login,
+				Email: &user.Email,
+				Name:  &user.Name,
 			},
 			Committer: &github.CommitAuthor{
-				Login: &mockAuthor,
+				Login: &user.Login,
+				Email: &user.Email,
+				Name:  &user.Name,
 			},
 		}},
-		{"With default paramters", args{"", "", ""}, &github.RepositoryContentFileOptions{
-			Message: &DefaultCommitMessage,
-			Branch:  &DefaultBranch,
+		{"With default fields", args{user, incompleteContent}, &github.RepositoryContentFileOptions{
+			Message: &defaultCommitMessage,
+			Branch:  &defaultBranch,
+			Content: []byte(defaultContentBody),
+			SHA:     &incompleteContent.SHA,
 			Author: &github.CommitAuthor{
-				Login: &DefaultAuthor,
+				Login: &user.Login,
+				Email: &user.Email,
+				Name:  &user.Name,
 			},
 			Committer: &github.CommitAuthor{
-				Login: &DefaultAuthor,
+				Login: &user.Login,
+				Email: &user.Email,
+				Name:  &user.Name,
 			},
 		}},
 	}
 	for _, tt := range tests {
-		if got := handlers.GetFileContentOptions(tt.args.message, tt.args.branch, tt.args.author); !reflect.DeepEqual(got, tt.want) {
+		if got := handlers.GetFileContentOptions(tt.args.user, tt.args.content); !reflect.DeepEqual(got, tt.want) {
 			t.Errorf("%q. GetFileContentOptions() = %v, want %v", tt.name, got, tt.want)
 		}
 	}
 }
 
 func TestGetRepositoryContentGetOptions(t *testing.T) {
+	defaultBranch := handlers.DefaultBranch
 	type args struct {
 		branch string
 	}
@@ -75,7 +103,7 @@ func TestGetRepositoryContentGetOptions(t *testing.T) {
 			Ref: "1-cool-branch",
 		}},
 		{"With default branch name", args{""}, &github.RepositoryContentGetOptions{
-			Ref: "master",
+			Ref: defaultBranch,
 		}},
 	}
 	for _, tt := range tests {

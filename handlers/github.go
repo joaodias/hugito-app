@@ -3,17 +3,32 @@ package handlers
 import (
 	"encoding/base64"
 	"github.com/google/go-github/github"
-	utils "github.com/joaodias/hugito-app/utils"
+	"github.com/joaodias/hugito-app/utils"
 	"golang.org/x/oauth2"
 	"net/http"
 )
 
-// Default values to use with the github wrapper.
+// Default values for optional or missing fields.
 const (
-	DefaultCommitMessage = "Updated by Hugito"
+	DefaultCommitMessage = "Job done by the awesome Hugito"
 	DefaultBranch        = "master"
-	DefaultAuthor        = "Hugito"
+	DefaultContentBody   = "`Hugito created this piece of content just for you <3`"
 )
+
+// Commit wrapps the Commit structure from the github api. This structure is represented just by the essential commit information.
+type Commit struct {
+	SHA     string `json:"sha"`
+	Message string `json:"commitMessage"`
+	URL     string `json:"url"`
+	Author  `json:"author"`
+}
+
+// Author is the author of a content entry.
+type Author struct {
+	Name  string `json:"name"`
+	Email string `json:"email"`
+	Login string `json:"login"`
+}
 
 // GithubWrapper wraps the github methods from the Github API. All the needed mehtods are wrapped for easier mocking
 type GithubWrapper interface {
@@ -45,14 +60,17 @@ func GetGithubUserLogin(githubClient *github.Client) (string, error) {
 	return *user.Login, nil
 }
 
-// GetGithubUserName gets the github user name respective to the previouslly
-// authorized github client.
-func GetGithubUserName(githubClient *github.Client) (string, error) {
+// GetGithubUser gets the github user.
+func GetGithubUser(githubClient *github.Client) (User, error) {
 	user, _, err := githubClient.Users.Get("")
 	if err != nil {
-		return "", err
+		return User{}, err
 	}
-	return *user.Name, nil
+	return User{
+		Name:  *user.Name,
+		Email: *user.Email,
+		Login: *user.Login,
+	}, nil
 }
 
 // GetGithubRepositories gets the github repositories to the previously
@@ -87,9 +105,24 @@ func GetGithubRepositoryTree(githubClient *github.Client, userLogin string, opt 
 	return repositoryTree, nil
 }
 
+// CreateGithubFileContent creates a new Github file content at a given
+// repository and in a given branch.
+func CreateGithubFileContent(githubClient *github.Client, opt *github.RepositoryContentFileOptions, repositoryName string, path string) (Commit, error) {
+	repositoryContentResponse, _, err := githubClient.Repositories.CreateFile(*opt.Author.Login, repositoryName, path, opt)
+	if err != nil {
+		return Commit{}, err
+	}
+	return Commit{
+		SHA: *repositoryContentResponse.SHA,
+		Author: Author{
+			Name:  *repositoryContentResponse.Author.Name,
+			Email: *repositoryContentResponse.Author.Email,
+		},
+	}, nil
+}
+
 // GetGithubFileContent gets the content of a HUGO content file.
-func GetGithubFileContent(githubClient *github.Client, userLogin string, repositoryName string, path string) (string, error) {
-	opt := &github.RepositoryContentGetOptions{}
+func GetGithubFileContent(githubClient *github.Client, opt *github.RepositoryContentGetOptions, userLogin string, repositoryName string, path string) (string, error) {
 	fileContent, _, _, err := githubClient.Repositories.GetContents(userLogin, repositoryName, path, opt)
 	if err != nil {
 		return "", err
@@ -101,21 +134,20 @@ func GetGithubFileContent(githubClient *github.Client, userLogin string, reposit
 	return string(decodedContent), nil
 }
 
+// GetGithubFileSHA gets the SHA for the given file.
+func GetGithubFileSHA(githubClient *github.Client, opt *github.RepositoryContentGetOptions, userLogin string, repositoryName string, path string) (string, error) {
+	content, _, _, err := githubClient.Repositories.GetContents(userLogin, repositoryName, path, opt)
+	if err != nil {
+		return "", err
+	}
+	return *content.SHA, nil
+}
+
 // UpdateGithubFileContent updates the content of an already existent file in
 // Github. A github content file object stucture is passed to improve
 // testability, flexibility and also to improve the readability of the method.
 func UpdateGithubFileContent(githubClient *github.Client, opt *github.RepositoryContentFileOptions, repositoryName string, path string) error {
 	_, _, err := githubClient.Repositories.UpdateFile(*opt.Author.Login, repositoryName, path, opt)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-// CreateGithubFileContent creates a new Github file content at a given
-// repository and in a given branch.
-func CreateGithubFileContent(githubClient *github.Client, opt *github.RepositoryContentFileOptions, repositoryName string, path string) error {
-	_, _, err := githubClient.Repositories.CreateFile(*opt.Author.Login, repositoryName, path, opt)
 	if err != nil {
 		return err
 	}
@@ -135,7 +167,7 @@ func RemoveGithubFileContent(githubClient *github.Client, opt *github.Repository
 // IsGithubRepositoryValid checks if a given repository tree matches the
 // criteria to be a valid HUGO repository.
 func IsGithubRepositoryValid(repositoryTree []string) bool {
-	referenceTree := []string{"content", "config.toml", "public", "themes"}
+	referenceTree := []string{"config.toml", "public", "themes"}
 	isValid := utils.ContainsSubArray(repositoryTree, referenceTree)
 	return isValid
 }
@@ -146,38 +178,42 @@ func (socketClient *SocketClient) GetNewClienter() NewClienter {
 	return github.NewClient
 }
 
-// GetFileContentOptions builds a file content option structure given a set of
-// parameters. SHA is ignored and Commiter is interpreted as the same role as
-// Author. For the time being The CommitAuthor just consists of the Login field.
-func GetFileContentOptions(message string, branch string, author string) *github.RepositoryContentFileOptions {
-	if message == "" {
-		message = DefaultCommitMessage
-	}
-	if author == "" {
-		author = DefaultAuthor
-	}
-	if branch == "" {
-		branch = DefaultBranch
-	}
-	return &github.RepositoryContentFileOptions{
-		Message: &message,
-		Branch:  &branch,
-		Author: &github.CommitAuthor{
-			Login: &author,
-		},
-		Committer: &github.CommitAuthor{
-			Login: &author,
-		},
-	}
-}
-
-// GetRepositoryContentGetOptions builds a content get oprions given a branch.
-// Usually the content get options can be used with SHA and tag also.
+// GetRepositoryContentGetOptions gets the github repositoy content get options based on a given branch.
 func GetRepositoryContentGetOptions(branch string) *github.RepositoryContentGetOptions {
 	if branch == "" {
 		branch = DefaultBranch
 	}
 	return &github.RepositoryContentGetOptions{
 		Ref: branch,
+	}
+}
+
+// GetFileContentOptions builds a file content option structure given an user
+// and the content. Commiter is interpreted as the same role as Author.
+func GetFileContentOptions(user User, content Content) *github.RepositoryContentFileOptions {
+	if content.Commit.Message == "" {
+		content.Commit.Message = DefaultCommitMessage
+	}
+	if content.Branch == "" {
+		content.Branch = DefaultBranch
+	}
+	if content.Body == "" {
+		content.Body = DefaultContentBody
+	}
+	return &github.RepositoryContentFileOptions{
+		Message: &content.Commit.Message,
+		Branch:  &content.Branch,
+		Content: []byte(content.Body),
+		SHA:     &content.SHA,
+		Author: &github.CommitAuthor{
+			Login: &user.Login,
+			Email: &user.Email,
+			Name:  &user.Name,
+		},
+		Committer: &github.CommitAuthor{
+			Login: &user.Login,
+			Email: &user.Email,
+			Name:  &user.Name,
+		},
 	}
 }

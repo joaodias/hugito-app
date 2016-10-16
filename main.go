@@ -2,7 +2,7 @@ package main
 
 import (
 	log "github.com/Sirupsen/logrus"
-	handlers "github.com/joaodias/hugito-app/handlers"
+	"github.com/joaodias/hugito-app/handlers"
 	"net/http"
 )
 
@@ -12,7 +12,7 @@ func main() {
 	router.Handle("repository validate", handlers.ValidateRepository)
 	router.Handle("content list", handlers.GetContentList)
 	router.Handle("content get", handlers.GetFileContent)
-	router.Handle("content create", handlers.GetFileContent)
+	router.Handle("content create", handlers.CreateContent)
 	router.Handle("content update", handlers.UpdateContent)
 	router.Handle("content remove", handlers.RemoveContent)
 	router.Handle("user get", handlers.GetUser)

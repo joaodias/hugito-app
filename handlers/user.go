@@ -7,6 +7,8 @@ import (
 // User represents the user information exchanged between the server and the client.
 type User struct {
 	Name        string `json:"name"`
+	Email       string `json:"email"`
+	Login       string `json:"login"`
 	AccessToken string `json:"accessToken"`
 }
 
@@ -26,7 +28,7 @@ func GetUser(communicator Communicator, data interface{}) {
 	communicator.NewFinishedChannel(UserFinished)
 	go func() {
 		githubClient := GetGithubClient(user.AccessToken, communicator)
-		user.Name, err = GetGithubUserName(githubClient)
+		user, err := GetGithubUser(githubClient)
 		if err != nil {
 			communicator.SetSend("logout", "Cannot get the authorized user.")
 			communicator.Finished(UserFinished)
