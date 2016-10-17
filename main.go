@@ -1,7 +1,7 @@
 package main
 
 import (
-	log "github.com/Sirupsen/logrus"
+	"fmt"
 	"github.com/joaodias/hugito-app/handlers"
 	"net/http"
 )
@@ -18,6 +18,6 @@ func main() {
 	router.Handle("user get", handlers.GetUser)
 	router.Handle("authenticate", handlers.Authenticate)
 	http.Handle("/", router)
-	log.Info("Go app initialized in port 4000.")
+	fmt.Print("Go app initialized in port 4000.")
 	http.ListenAndServe(":4000", nil)
 }
