@@ -23,10 +23,9 @@ type Authentication struct {
 }
 
 type Client struct {
-	Name             string
-	Data             interface{}
-	FinishedChannels map[int]chan bool
-	OauthConf        *oauth2.Config
+	Name      string
+	Data      interface{}
+	OauthConf *oauth2.Config
 }
 
 var _ handlers.Communicator = (*Client)(nil)
@@ -42,23 +41,6 @@ func (t *Client) Write() {
 func (t *Client) SetSend(name string, data interface{}) {
 	t.Name = name
 	t.Data = data
-}
-
-func (t *Client) NewFinishedChannel(finishedKey int) {
-	t.FinishForKey(finishedKey)
-	t.FinishedChannels[finishedKey] = make(chan bool)
-}
-
-func (t *Client) FinishForKey(key int) {
-	if ch, found := t.FinishedChannels[key]; found {
-		ch <- true
-		delete(t.FinishedChannels, key)
-	}
-}
-
-func (t *Client) Finished(key int) {
-	t.FinishedChannels[key] <- true
-	t.FinishForKey(key)
 }
 
 func (t *Client) GetOauthConfiguration() *oauth2.Config {

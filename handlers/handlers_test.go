@@ -14,17 +14,6 @@ import (
 )
 
 var _ = Describe("Handlers", func() {
-	const (
-		UserFinished = iota
-		AuthenticationFinished
-		RepositoryFinished
-		ContentFinished
-		ValidationFinished
-		FileContentFinished
-		UpdateContentFinished
-		CreateContentFinished
-		RemoveContentFinished
-	)
 	Describe("Authentication Handlers", func() {
 		type MockAuthentication struct {
 			Authenticated string `json:"authenticated"`
@@ -41,7 +30,6 @@ var _ = Describe("Handlers", func() {
 			mux = http.NewServeMux()
 			testServer = httptest.NewServer(mux)
 			mClient = &mocks.Client{
-				FinishedChannels: make(map[int]chan bool),
 				OauthConf: &oauth2.Config{
 					ClientID:     "FAKE_CLIENT_ID",
 					ClientSecret: "FAKE_CLIENT_SECRET",
@@ -64,7 +52,6 @@ var _ = Describe("Handlers", func() {
 					mockAuthentication := &MockAuthentication{Authenticated: "false", Code: "1234", State: "5678", ReceivedState: "9867"}
 					mData := structs.Map(mockAuthentication)
 					handlers.Authenticate(mClient, mData)
-					<-mClient.FinishedChannels[AuthenticationFinished]
 					Expect(mClient.Name).To(ContainSubstring("error"))
 					Expect(mClient.Data).To(ContainSubstring("received state and state are different."))
 				})
@@ -77,7 +64,6 @@ var _ = Describe("Handlers", func() {
 					// the server is handlers is not defined so
 					// it will return a not found, which is cool.
 					handlers.Authenticate(mClient, mData)
-					<-mClient.FinishedChannels[AuthenticationFinished]
 					Expect(mClient.Name).To(ContainSubstring("error"))
 					Expect(mClient.Data).To(ContainSubstring("Error getting the access token."))
 				})
@@ -91,7 +77,6 @@ var _ = Describe("Handlers", func() {
 						fmt.Fprint(w, "access_token=90d64460d14870c08c81352a05dedd3465940a7c&scope=user&token_type=bearer")
 					})
 					handlers.Authenticate(mClient, mData)
-					<-mClient.FinishedChannels[AuthenticationFinished]
 					Expect(mClient.Name).To(ContainSubstring("authenticated set"))
 					Expect(mClient.Data).To(ContainSubstring("90d64460d14870c08c81352a05dedd3465940a7c"))
 				})
@@ -114,7 +99,6 @@ var _ = Describe("Handlers", func() {
 			mux = http.NewServeMux()
 			testServer = httptest.NewServer(mux)
 			mClient = &mocks.Client{
-				FinishedChannels: make(map[int]chan bool),
 				OauthConf: &oauth2.Config{
 					ClientID:     "FAKE_CLIENT_ID",
 					ClientSecret: "FAKE_CLIENT_SECRET",
@@ -141,7 +125,6 @@ var _ = Describe("Handlers", func() {
 						fmt.Fprint(w, `somethingReallyWrong`)
 					})
 					handlers.GetUser(mClient, mockJSONWithValidToken)
-					<-mClient.FinishedChannels[UserFinished]
 					Expect(mClient.Name).To(ContainSubstring("logout"))
 					Expect(mClient.Data).To(Equal("Cannot get the authorized user."))
 				})
@@ -153,7 +136,6 @@ var _ = Describe("Handlers", func() {
 						fmt.Fprint(w, `{"Name":"João Dias","Login":"joaodias", "Email":"diasjoaoac@gmail.com"}`)
 					})
 					handlers.GetUser(mClient, mockJSONWithValidToken)
-					<-mClient.FinishedChannels[UserFinished]
 					receivedData := mClient.Data.(handlers.User)
 					Expect(mClient.Name).To(ContainSubstring("user set"))
 					Expect(receivedData.Name).To(Equal("João Dias"))
@@ -187,7 +169,6 @@ var _ = Describe("Handlers", func() {
 			mux = http.NewServeMux()
 			testServer = httptest.NewServer(mux)
 			mClient = &mocks.Client{
-				FinishedChannels: make(map[int]chan bool),
 				OauthConf: &oauth2.Config{
 					ClientID:     "FAKE_CLIENT_ID",
 					ClientSecret: "FAKE_CLIENT_SECRET",
@@ -219,7 +200,6 @@ var _ = Describe("Handlers", func() {
 						fmt.Fprint(w, `reallywrongresponse`)
 					})
 					handlers.GetRepository(mClient, mockJSONWithValidToken)
-					<-mClient.FinishedChannels[RepositoryFinished]
 					Expect(mClient.Name).To(ContainSubstring("logout"))
 					Expect(mClient.Data).To(Equal("Cannot get the user repositories."))
 				})
@@ -230,7 +210,6 @@ var _ = Describe("Handlers", func() {
 						fmt.Fprint(w, `[{"Name":"repo1"}, {"Name":"repo2"}, {"Name":"repo3"}]`)
 					})
 					handlers.GetRepository(mClient, mockJSONWithValidToken)
-					<-mClient.FinishedChannels[RepositoryFinished]
 					receivedData := mClient.Data.(handlers.Repositories)
 					Expect(mClient.Name).To(ContainSubstring("repositories set"))
 					Expect(receivedData.Names).To(Equal([]string{"repo1", "repo2", "repo3"}))
@@ -253,7 +232,6 @@ var _ = Describe("Handlers", func() {
 						fmt.Fprint(w, `someErronicThingHappened`)
 					})
 					handlers.ValidateRepository(mClient, mockJSONValidRepo)
-					<-mClient.FinishedChannels[ValidationFinished]
 					Expect(mClient.Name).To(Equal("logout"))
 					Expect(mClient.Data).To(Equal("Can't retrieve the authenticated user."))
 				})
@@ -268,7 +246,6 @@ var _ = Describe("Handlers", func() {
 						fmt.Fprint(w, `someErroniousStuff`)
 					})
 					handlers.ValidateRepository(mClient, mockJSONValidRepo)
-					<-mClient.FinishedChannels[ValidationFinished]
 					Expect(mClient.Name).To(Equal("error"))
 					Expect(mClient.Data).To(Equal("Can't retrieve selected repository."))
 				})
@@ -283,7 +260,6 @@ var _ = Describe("Handlers", func() {
 						fmt.Fprint(w, `[{"Name":"dir1"}, {"Name":"file1"}, {"Name":"dir2"}]`)
 					})
 					handlers.ValidateRepository(mClient, mockJSONInvalidRepo)
-					<-mClient.FinishedChannels[ValidationFinished]
 					Expect(mClient.Name).To(Equal("error"))
 					Expect(mClient.Data).To(Equal("Repository is not valid."))
 				})
@@ -298,7 +274,6 @@ var _ = Describe("Handlers", func() {
 						fmt.Fprint(w, `[{"Name":"content"}, {"Name":"config.toml"}, {"Name":"public"}, {"Name":"themes"}]`)
 					})
 					handlers.ValidateRepository(mClient, mockJSONValidRepo)
-					<-mClient.FinishedChannels[ValidationFinished]
 					Expect(mClient.Name).To(Equal("repository validate"))
 					Expect(mClient.Data).To(Equal("Repository is valid."))
 				})
@@ -345,7 +320,6 @@ var _ = Describe("Handlers", func() {
 			mux = http.NewServeMux()
 			testServer = httptest.NewServer(mux)
 			mClient = &mocks.Client{
-				FinishedChannels: make(map[int]chan bool),
 				OauthConf: &oauth2.Config{
 					ClientID:     "FAKE_CLIENT_ID",
 					ClientSecret: "FAKE_CLIENT_SECRET",
@@ -376,7 +350,6 @@ var _ = Describe("Handlers", func() {
 						fmt.Fprint(w, `someErronicThingHappened`)
 					})
 					handlers.GetContentList(mClient, mockJSONContentList)
-					<-mClient.FinishedChannels[ContentFinished]
 					Expect(mClient.Name).To(Equal("logout"))
 					Expect(mClient.Data).To(Equal("Can't retrieve the authenticated user."))
 				})
@@ -391,7 +364,6 @@ var _ = Describe("Handlers", func() {
 						fmt.Fprint(w, `someErroniousStuff`)
 					})
 					handlers.GetContentList(mClient, mockJSONContentList)
-					<-mClient.FinishedChannels[ContentFinished]
 					Expect(mClient.Name).To(Equal("error"))
 					Expect(mClient.Data).To(Equal("Can't retrieve the content list."))
 				})
@@ -406,7 +378,6 @@ var _ = Describe("Handlers", func() {
 						fmt.Fprint(w, `[{"Name":"Content File 1"}, {"Name":"Content File 2"}]`)
 					})
 					handlers.GetContentList(mClient, mockJSONContentList)
-					<-mClient.FinishedChannels[ContentFinished]
 					Expect(mClient.Name).To(Equal("content list"))
 					receivedData := mClient.Data.(handlers.ContentList)
 					Expect(receivedData.Name).To(Equal("validatedrepo"))
@@ -430,7 +401,6 @@ var _ = Describe("Handlers", func() {
 						fmt.Fprint(w, `someErronicThingHappened`)
 					})
 					handlers.GetFileContent(mClient, mockJSONContent)
-					<-mClient.FinishedChannels[FileContentFinished]
 					Expect(mClient.Name).To(Equal("logout"))
 					Expect(mClient.Data).To(Equal("Can't retrieve the authenticated user."))
 				})
@@ -445,7 +415,6 @@ var _ = Describe("Handlers", func() {
 						fmt.Fprint(w, `someErroniousStuff`)
 					})
 					handlers.GetFileContent(mClient, mockJSONContent)
-					<-mClient.FinishedChannels[FileContentFinished]
 					Expect(mClient.Name).To(Equal("error"))
 					Expect(mClient.Data).To(Equal("Can't retrieve the file content."))
 				})
@@ -460,7 +429,6 @@ var _ = Describe("Handlers", func() {
 						fmt.Fprint(w, `{"Content":"Cool"}`)
 					})
 					handlers.GetFileContent(mClient, mockJSONContent)
-					<-mClient.FinishedChannels[FileContentFinished]
 					Expect(mClient.Name).To(Equal("content set"))
 					receivedData := mClient.Data.(handlers.Content)
 					Expect(receivedData.RepositoryName).To(Equal("validatedrepo"))
@@ -487,7 +455,6 @@ var _ = Describe("Handlers", func() {
 						fmt.Fprint(w, `someErronicThingHappened`)
 					})
 					handlers.UpdateContent(mClient, mockJSONContentList)
-					<-mClient.FinishedChannels[UpdateContentFinished]
 					Expect(mClient.Name).To(Equal("logout"))
 					Expect(mClient.Data).To(Equal("Can't retrieve the authenticated user."))
 				})
@@ -502,7 +469,6 @@ var _ = Describe("Handlers", func() {
 						fmt.Fprint(w, `someErroniousStuff`)
 					})
 					handlers.UpdateContent(mClient, mockJSONContent)
-					<-mClient.FinishedChannels[UpdateContentFinished]
 					Expect(mClient.Name).To(Equal("error"))
 					Expect(mClient.Data).To(Equal("Unnable to get content information."))
 				})
@@ -520,7 +486,6 @@ var _ = Describe("Handlers", func() {
 						fmt.Fprint(w, `someErroniousStuff`)
 					})
 					handlers.UpdateContent(mClient, mockJSONContent)
-					<-mClient.FinishedChannels[UpdateContentFinished]
 					Expect(mClient.Name).To(Equal("error"))
 					Expect(mClient.Data).To(Equal("Unnable to update the content."))
 				})
@@ -538,7 +503,6 @@ var _ = Describe("Handlers", func() {
 						fmt.Fprint(w, ``)
 					})
 					handlers.UpdateContent(mClient, mockJSONContent)
-					<-mClient.FinishedChannels[UpdateContentFinished]
 					Expect(mClient.Name).To(Equal("content update"))
 					Expect(mClient.Data).To(Equal("Content Successfully Published."))
 				})
@@ -559,7 +523,6 @@ var _ = Describe("Handlers", func() {
 						fmt.Fprint(w, `someErronicThingHappened`)
 					})
 					handlers.CreateContent(mClient, mockJSONContentList)
-					<-mClient.FinishedChannels[CreateContentFinished]
 					Expect(mClient.Name).To(Equal("logout"))
 					Expect(mClient.Data).To(Equal("Can't retrieve the authenticated user."))
 				})
@@ -574,7 +537,6 @@ var _ = Describe("Handlers", func() {
 						fmt.Fprint(w, `ErroniousStuff`)
 					})
 					handlers.CreateContent(mClient, mockJSONContent)
-					<-mClient.FinishedChannels[CreateContentFinished]
 					Expect(mClient.Name).To(Equal("error"))
 					Expect(mClient.Data).To(Equal("Unnable to create the content."))
 				})
@@ -589,7 +551,6 @@ var _ = Describe("Handlers", func() {
 						fmt.Fprint(w, `{"Commit":{"SHA":"1234","Author":{"Name":"João Dias","Username":"joaodias","Email":"diasjoaoac@gmail.com"}}}`)
 					})
 					handlers.CreateContent(mClient, mockJSONContent)
-					<-mClient.FinishedChannels[CreateContentFinished]
 					receivedData := mClient.Data.(handlers.Content)
 					Expect(mClient.Name).To(Equal("content create"))
 					Expect(receivedData.RepositoryName).To(Equal("validatedrepo"))
@@ -618,7 +579,6 @@ var _ = Describe("Handlers", func() {
 						fmt.Fprint(w, `someErronicThingHappened`)
 					})
 					handlers.RemoveContent(mClient, mockJSONContentList)
-					<-mClient.FinishedChannels[RemoveContentFinished]
 					Expect(mClient.Name).To(Equal("logout"))
 					Expect(mClient.Data).To(Equal("Can't retrieve the authenticated user."))
 				})
@@ -633,7 +593,6 @@ var _ = Describe("Handlers", func() {
 						fmt.Fprint(w, `someErroniousStuff`)
 					})
 					handlers.RemoveContent(mClient, mockJSONContent)
-					<-mClient.FinishedChannels[RemoveContentFinished]
 					Expect(mClient.Name).To(Equal("error"))
 					Expect(mClient.Data).To(Equal("Unnable to get content information."))
 				})
@@ -651,7 +610,6 @@ var _ = Describe("Handlers", func() {
 						fmt.Fprint(w, `someErroniousStuff`)
 					})
 					handlers.RemoveContent(mClient, mockJSONContent)
-					<-mClient.FinishedChannels[RemoveContentFinished]
 					Expect(mClient.Name).To(Equal("error"))
 					Expect(mClient.Data).To(Equal("Unnable to remove the content."))
 				})
@@ -669,7 +627,6 @@ var _ = Describe("Handlers", func() {
 						fmt.Fprint(w, ``)
 					})
 					handlers.RemoveContent(mClient, mockJSONContent)
-					<-mClient.FinishedChannels[RemoveContentFinished]
 					receivedData := mClient.Data.(handlers.Content)
 					Expect(mClient.Name).To(Equal("content remove"))
 					Expect(receivedData.RepositoryName).To(Equal("validatedrepo"))

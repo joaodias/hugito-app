@@ -38,25 +38,19 @@ func GetContentList(communicator Communicator, data interface{}) {
 		communicator.SetSend("error", "Error decoding json:"+err.Error())
 		return
 	}
-	communicator.NewFinishedChannel(ContentFinished)
-	go func() {
-		githubClient := GetGithubClient(contentList.AccessToken, communicator)
-		userLogin, err := GetGithubUserLogin(githubClient)
-		if err != nil {
-			communicator.SetSend("logout", "Can't retrieve the authenticated user.")
-			communicator.Finished(ContentFinished)
-			return
-		}
-		githubContentGetOpt := GetRepositoryContentGetOptions(contentList.Branch)
-		contentList.Titles, err = GetGithubRepositoryTree(githubClient, userLogin, githubContentGetOpt, contentList.Name, "content")
-		if err != nil {
-			communicator.SetSend("error", "Can't retrieve the content list.")
-			communicator.Finished(ContentFinished)
-			return
-		}
-		communicator.SetSend("content list", contentList)
-		communicator.Finished(ContentFinished)
-	}()
+	githubClient := GetGithubClient(contentList.AccessToken, communicator)
+	userLogin, err := GetGithubUserLogin(githubClient)
+	if err != nil {
+		communicator.SetSend("logout", "Can't retrieve the authenticated user.")
+		return
+	}
+	githubContentGetOpt := GetRepositoryContentGetOptions(contentList.Branch)
+	contentList.Titles, err = GetGithubRepositoryTree(githubClient, userLogin, githubContentGetOpt, contentList.Name, "content")
+	if err != nil {
+		communicator.SetSend("error", "Can't retrieve the content list.")
+		return
+	}
+	communicator.SetSend("content list", contentList)
 }
 
 // CreateContent creates a new github content file.
@@ -73,25 +67,19 @@ func CreateContent(communicator Communicator, data interface{}) {
 		communicator.SetSend("error", "Error decoding json:"+err.Error())
 		return
 	}
-	communicator.NewFinishedChannel(CreateContentFinished)
-	go func() {
-		githubClient := GetGithubClient(content.AccessToken, communicator)
-		user, err := GetGithubUser(githubClient)
-		if err != nil {
-			communicator.SetSend("logout", "Can't retrieve the authenticated user.")
-			communicator.Finished(CreateContentFinished)
-			return
-		}
-		githubFileContentOpt := GetFileContentOptions(user, content)
-		content.Commit, err = CreateGithubFileContent(githubClient, githubFileContentOpt, content.RepositoryName, "content/"+content.Title)
-		if err != nil {
-			communicator.SetSend("error", "Unnable to create the content.")
-			communicator.Finished(CreateContentFinished)
-			return
-		}
-		communicator.SetSend("content create", content)
-		communicator.Finished(CreateContentFinished)
-	}()
+	githubClient := GetGithubClient(content.AccessToken, communicator)
+	user, err := GetGithubUser(githubClient)
+	if err != nil {
+		communicator.SetSend("logout", "Can't retrieve the authenticated user.")
+		return
+	}
+	githubFileContentOpt := GetFileContentOptions(user, content)
+	content.Commit, err = CreateGithubFileContent(githubClient, githubFileContentOpt, content.RepositoryName, "content/"+content.Title)
+	if err != nil {
+		communicator.SetSend("error", "Unnable to create the content.")
+		return
+	}
+	communicator.SetSend("content create", content)
 }
 
 // GetFileContent gets the content of a file from the github repository.
@@ -108,25 +96,19 @@ func GetFileContent(communicator Communicator, data interface{}) {
 		communicator.SetSend("error", "Error decoding json:"+err.Error())
 		return
 	}
-	communicator.NewFinishedChannel(FileContentFinished)
-	go func() {
-		githubClient := GetGithubClient(content.AccessToken, communicator)
-		userLogin, err := GetGithubUserLogin(githubClient)
-		if err != nil {
-			communicator.SetSend("logout", "Can't retrieve the authenticated user.")
-			communicator.Finished(FileContentFinished)
-			return
-		}
-		githubContentGetOpt := GetRepositoryContentGetOptions(content.Branch)
-		content.Body, err = GetGithubFileContent(githubClient, githubContentGetOpt, userLogin, content.RepositoryName, "content/"+content.Title)
-		if err != nil {
-			communicator.SetSend("error", "Can't retrieve the file content.")
-			communicator.Finished(FileContentFinished)
-			return
-		}
-		communicator.SetSend("content set", content)
-		communicator.Finished(FileContentFinished)
-	}()
+	githubClient := GetGithubClient(content.AccessToken, communicator)
+	userLogin, err := GetGithubUserLogin(githubClient)
+	if err != nil {
+		communicator.SetSend("logout", "Can't retrieve the authenticated user.")
+		return
+	}
+	githubContentGetOpt := GetRepositoryContentGetOptions(content.Branch)
+	content.Body, err = GetGithubFileContent(githubClient, githubContentGetOpt, userLogin, content.RepositoryName, "content/"+content.Title)
+	if err != nil {
+		communicator.SetSend("error", "Can't retrieve the file content.")
+		return
+	}
+	communicator.SetSend("content set", content)
 }
 
 // UpdateContent updates the content of a github file.
@@ -143,32 +125,25 @@ func UpdateContent(communicator Communicator, data interface{}) {
 		communicator.SetSend("error", "Error decoding json:"+err.Error())
 		return
 	}
-	communicator.NewFinishedChannel(UpdateContentFinished)
-	go func() {
-		githubClient := GetGithubClient(content.AccessToken, communicator)
-		user, err := GetGithubUser(githubClient)
-		if err != nil {
-			communicator.SetSend("logout", "Can't retrieve the authenticated user.")
-			communicator.Finished(UpdateContentFinished)
-			return
-		}
-		githubContentGetOpt := GetRepositoryContentGetOptions(content.Branch)
-		githubFileContentOpt := GetFileContentOptions(user, content)
-		*githubFileContentOpt.SHA, err = GetGithubFileSHA(githubClient, githubContentGetOpt, user.Login, content.RepositoryName, "content/"+content.Title)
-		if err != nil {
-			communicator.SetSend("error", "Unnable to get content information.")
-			communicator.Finished(UpdateContentFinished)
-			return
-		}
-		err = UpdateGithubFileContent(githubClient, githubFileContentOpt, content.RepositoryName, "content/"+content.Title)
-		if err != nil {
-			communicator.SetSend("error", "Unnable to update the content.")
-			communicator.Finished(UpdateContentFinished)
-			return
-		}
-		communicator.SetSend("content update", "Content Successfully Published.")
-		communicator.Finished(UpdateContentFinished)
-	}()
+	githubClient := GetGithubClient(content.AccessToken, communicator)
+	user, err := GetGithubUser(githubClient)
+	if err != nil {
+		communicator.SetSend("logout", "Can't retrieve the authenticated user.")
+		return
+	}
+	githubContentGetOpt := GetRepositoryContentGetOptions(content.Branch)
+	githubFileContentOpt := GetFileContentOptions(user, content)
+	*githubFileContentOpt.SHA, err = GetGithubFileSHA(githubClient, githubContentGetOpt, user.Login, content.RepositoryName, "content/"+content.Title)
+	if err != nil {
+		communicator.SetSend("error", "Unnable to get content information.")
+		return
+	}
+	err = UpdateGithubFileContent(githubClient, githubFileContentOpt, content.RepositoryName, "content/"+content.Title)
+	if err != nil {
+		communicator.SetSend("error", "Unnable to update the content.")
+		return
+	}
+	communicator.SetSend("content update", "Content Successfully Published.")
 }
 
 // RemoveContent removes an already existent github content file.
@@ -185,31 +160,24 @@ func RemoveContent(communicator Communicator, data interface{}) {
 		communicator.SetSend("error", "Error decoding json:"+err.Error())
 		return
 	}
-	communicator.NewFinishedChannel(RemoveContentFinished)
-	go func() {
-		githubClient := GetGithubClient(content.AccessToken, communicator)
-		user, err := GetGithubUser(githubClient)
-		if err != nil {
-			communicator.SetSend("logout", "Can't retrieve the authenticated user.")
-			communicator.Finished(RemoveContentFinished)
-			return
-		}
-		githubContentGetOpt := GetRepositoryContentGetOptions(content.Branch)
-		githubFileContentOpt := GetFileContentOptions(user, content)
-		*githubFileContentOpt.SHA, err = GetGithubFileSHA(githubClient, githubContentGetOpt, user.Login, content.RepositoryName, "content/"+content.Title)
-		if err != nil {
-			communicator.SetSend("error", "Unnable to get content information.")
-			communicator.Finished(RemoveContentFinished)
-			return
-		}
-		err = RemoveGithubFileContent(githubClient, githubFileContentOpt, content.RepositoryName, "content/"+content.Title)
-		if err != nil {
-			communicator.SetSend("error", "Unnable to remove the content.")
-			communicator.Finished(RemoveContentFinished)
-			return
-		}
-		content.Body = ""
-		communicator.SetSend("content remove", content)
-		communicator.Finished(RemoveContentFinished)
-	}()
+	githubClient := GetGithubClient(content.AccessToken, communicator)
+	user, err := GetGithubUser(githubClient)
+	if err != nil {
+		communicator.SetSend("logout", "Can't retrieve the authenticated user.")
+		return
+	}
+	githubContentGetOpt := GetRepositoryContentGetOptions(content.Branch)
+	githubFileContentOpt := GetFileContentOptions(user, content)
+	*githubFileContentOpt.SHA, err = GetGithubFileSHA(githubClient, githubContentGetOpt, user.Login, content.RepositoryName, "content/"+content.Title)
+	if err != nil {
+		communicator.SetSend("error", "Unnable to get content information.")
+		return
+	}
+	err = RemoveGithubFileContent(githubClient, githubFileContentOpt, content.RepositoryName, "content/"+content.Title)
+	if err != nil {
+		communicator.SetSend("error", "Unnable to remove the content.")
+		return
+	}
+	content.Body = ""
+	communicator.SetSend("content remove", content)
 }
