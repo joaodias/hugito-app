@@ -25,16 +25,11 @@ func GetUser(communicator Communicator, data interface{}) {
 		communicator.SetSend("error", "Error decoding json: ")
 		return
 	}
-	communicator.NewFinishedChannel(UserFinished)
-	go func() {
-		githubClient := GetGithubClient(user.AccessToken, communicator)
-		user, err := GetGithubUser(githubClient)
-		if err != nil {
-			communicator.SetSend("logout", "Cannot get the authorized user.")
-			communicator.Finished(UserFinished)
-			return
-		}
-		communicator.SetSend("user set", user)
-		communicator.Finished(UserFinished)
-	}()
+	githubClient := GetGithubClient(user.AccessToken, communicator)
+	user, err = GetGithubUser(githubClient)
+	if err != nil {
+		communicator.SetSend("logout", "Cannot get the authorized user.")
+		return
+	}
+	communicator.SetSend("user set", user)
 }

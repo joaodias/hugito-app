@@ -34,22 +34,16 @@ func Authenticate(communicator Communicator, data interface{}) {
 		communicator.SetSend("error", "Error decoding json: "+err.Error())
 		return
 	}
-	communicator.NewFinishedChannel(AuthenticationFinished)
-	go func() {
-		if !isStateValid(authentication.State, authentication.ReceivedState) {
-			communicator.SetSend("error", "received state and state are different.")
-			communicator.Finished(AuthenticationFinished)
-			return
-		}
-		accessToken, err := authentication.getToken(communicator.GetOauthConfiguration())
-		if err != nil {
-			communicator.SetSend("error", "Error getting the access token.")
-			communicator.Finished(AuthenticationFinished)
-			return
-		}
-		communicator.SetSend("authenticated set", accessToken)
-		communicator.Finished(AuthenticationFinished)
-	}()
+	if !isStateValid(authentication.State, authentication.ReceivedState) {
+		communicator.SetSend("error", "received state and state are different.")
+		return
+	}
+	accessToken, err := authentication.getToken(communicator.GetOauthConfiguration())
+	if err != nil {
+		communicator.SetSend("error", "Error getting the access token.")
+		return
+	}
+	communicator.SetSend("authenticated set", accessToken)
 }
 
 func (authentication *Authentication) getToken(oauthConf *oauth2.Config) (string, error) {

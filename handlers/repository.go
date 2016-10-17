@@ -32,18 +32,13 @@ func GetRepository(communicator Communicator, data interface{}) {
 		communicator.SetSend("error", "Error decoding json:"+err.Error())
 		return
 	}
-	communicator.NewFinishedChannel(RepositoryFinished)
-	go func() {
-		githubClient := GetGithubClient(repositories.AccessToken, communicator)
-		repositories.Names, err = GetGithubRepositories(githubClient)
-		if err != nil {
-			communicator.SetSend("logout", "Cannot get the user repositories.")
-			communicator.Finished(RepositoryFinished)
-			return
-		}
-		communicator.SetSend("repositories set", repositories)
-		communicator.Finished(RepositoryFinished)
-	}()
+	githubClient := GetGithubClient(repositories.AccessToken, communicator)
+	repositories.Names, err = GetGithubRepositories(githubClient)
+	if err != nil {
+		communicator.SetSend("logout", "Cannot get the user repositories.")
+		return
+	}
+	communicator.SetSend("repositories set", repositories)
 }
 
 // ValidateRepository checks if a given repository has a valid hugo
@@ -62,29 +57,22 @@ func ValidateRepository(communicator Communicator, data interface{}) {
 		communicator.SetSend("error", "Error decoding json:"+err.Error())
 		return
 	}
-	communicator.NewFinishedChannel(ValidationFinished)
-	go func() {
-		githubClient := GetGithubClient(repository.AccessToken, communicator)
-		userLogin, err := GetGithubUserLogin(githubClient)
-		if err != nil {
-			communicator.SetSend("logout", "Can't retrieve the authenticated user.")
-			communicator.Finished(ValidationFinished)
-			return
-		}
-		githubContentGetOpt := GetRepositoryContentGetOptions(repository.Branch)
-		repositoryTree, err := GetGithubRepositoryTree(githubClient, userLogin, githubContentGetOpt, repository.Name, "")
-		if err != nil {
-			communicator.SetSend("error", "Can't retrieve selected repository.")
-			communicator.Finished(ValidationFinished)
-			return
-		}
-		isValid := IsGithubRepositoryValid(repositoryTree)
-		if !isValid {
-			communicator.SetSend("error", "Repository is not valid.")
-			communicator.Finished(ValidationFinished)
-			return
-		}
-		communicator.SetSend("repository validate", "Repository is valid.")
-		communicator.Finished(ValidationFinished)
-	}()
+	githubClient := GetGithubClient(repository.AccessToken, communicator)
+	userLogin, err := GetGithubUserLogin(githubClient)
+	if err != nil {
+		communicator.SetSend("logout", "Can't retrieve the authenticated user.")
+		return
+	}
+	githubContentGetOpt := GetRepositoryContentGetOptions(repository.Branch)
+	repositoryTree, err := GetGithubRepositoryTree(githubClient, userLogin, githubContentGetOpt, repository.Name, "")
+	if err != nil {
+		communicator.SetSend("error", "Can't retrieve selected repository.")
+		return
+	}
+	isValid := IsGithubRepositoryValid(repositoryTree)
+	if !isValid {
+		communicator.SetSend("error", "Repository is not valid.")
+		return
+	}
+	communicator.SetSend("repository validate", "Repository is valid.")
 }

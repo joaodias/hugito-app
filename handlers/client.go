@@ -6,20 +6,6 @@ import (
 	githuboauth "golang.org/x/oauth2/github"
 )
 
-// Consts used to numerically identify each handler. Used with channels to
-// check the related handler.
-const (
-	UserFinished = iota
-	AuthenticationFinished
-	RepositoryFinished
-	ContentFinished
-	ValidationFinished
-	FileContentFinished
-	UpdateContentFinished
-	CreateContentFinished
-	RemoveContentFinished
-)
-
 // FindHandler returns the Handler related to the given message sent by the client.
 type FindHandler func(string) (Handler, bool)
 
@@ -36,20 +22,16 @@ type Communicator interface {
 	Read()
 	Write()
 	SetSend(string, interface{})
-	NewFinishedChannel(int)
-	FinishForKey(int)
-	Finished(int)
 	GetOauthConfiguration() *oauth2.Config
 	GithubWrapper
 }
 
 // SocketClient is a structure to make easier the communication with the client.
 type SocketClient struct {
-	send             chan Message
-	socket           *websocket.Conn
-	findHandler      FindHandler
-	finishedChannels map[int]chan bool
-	oauthConf        *oauth2.Config
+	send        chan Message
+	socket      *websocket.Conn
+	findHandler FindHandler
+	oauthConf   *oauth2.Config
 }
 
 // Read reads from the websocket.
@@ -82,30 +64,6 @@ func (socketClient *SocketClient) SetSend(name string, data interface{}) {
 	socketClient.send <- Message{name, data}
 }
 
-// NewFinishedChannel makes a new channel related to an handler. This channel
-// turns true whenever the operation related to that handler is finished.
-func (socketClient *SocketClient) NewFinishedChannel(finishedKey int) {
-	socketClient.FinishForKey(finishedKey)
-	socketClient.finishedChannels[finishedKey] = make(chan bool)
-}
-
-// FinishForKey finishes and deletes the channel associated to a given key in
-// the case that the channel already exists. This key numerically represents an
-// handler.
-func (socketClient *SocketClient) FinishForKey(key int) {
-	if ch, found := socketClient.finishedChannels[key]; found {
-		ch <- true
-		delete(socketClient.finishedChannels, key)
-	}
-}
-
-// Finished sets a specific channel from the set of channels that represent the
-// end of an operation to true. This value represents that the operation
-// associated to the given channel is finished.
-func (socketClient *SocketClient) Finished(key int) {
-	socketClient.finishedChannels[key] <- true
-}
-
 // GetOauthConfiguration gets the oauth configuration of a given communicator.
 func (socketClient *SocketClient) GetOauthConfiguration() *oauth2.Config {
 	return socketClient.oauthConf
@@ -114,10 +72,9 @@ func (socketClient *SocketClient) GetOauthConfiguration() *oauth2.Config {
 // NewClient creates a new client communication
 func NewClient(socket *websocket.Conn, findHandler FindHandler) Communicator {
 	return &SocketClient{
-		send:             make(chan Message),
-		socket:           socket,
-		findHandler:      findHandler,
-		finishedChannels: make(map[int]chan bool),
+		send:        make(chan Message),
+		socket:      socket,
+		findHandler: findHandler,
 		oauthConf: &oauth2.Config{
 			ClientID:     ClientID,
 			ClientSecret: Secret,
