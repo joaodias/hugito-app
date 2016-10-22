@@ -1,6 +1,7 @@
 # Hugito Static Website Content Manager
 
 [![Build Status](https://travis-ci.com/joaodias/hugito-app.svg?token=sUutqTfvfqWU1UcqaFtD)](https://travis-ci.com/joaodias/hugito-app)
+[![Coverage Status](https://coveralls.io/repos/github/joaodias/hugito-app/badge.svg?branch=master)](https://coveralls.io/github/joaodias/hugito-app?branch=master)
 
 Visit the latest Hugito at www.hugito.surge.sh
 
