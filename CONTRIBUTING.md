@@ -1,0 +1,2 @@
+## How to contribute
+The contribution rules are being forced by GitMagic. Don't be afraid to make a mistake :satisfied:. It is OK. And GitMagic will tell you what is wrong :cop:. The rules are defined in `contributing.json` and you can check the meaning of each rule here: https://gitmagic.io/rules/
