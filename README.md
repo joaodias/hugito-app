@@ -8,6 +8,9 @@ Hugito = HUGO + Git
 
 The content is hold in Github and managed in the Hugito platform.
 
+## Deployement
+Deployed in: www.hugito.herokuapp.com
+
 ## How to Contribute
 1. Open Issue ("Missing cool feature #10")
 2. Create Feature Branch with the Issue number ("10-add-cool-feature")
