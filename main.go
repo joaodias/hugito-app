@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/joaodias/hugito-app/handlers"
 	"net/http"
+	"os"
 )
 
 func main() {
@@ -18,6 +19,7 @@ func main() {
 	router.Handle("user get", handlers.GetUser)
 	router.Handle("authenticate", handlers.Authenticate)
 	http.Handle("/", router)
-	fmt.Print("Go app initialized in port 4000.")
-	http.ListenAndServe(":4000", nil)
+	port := os.Getenv("PORT")
+	fmt.Print("Go app initialized in port " + port + ".\n")
+	http.ListenAndServe(":"+port, nil)
 }
