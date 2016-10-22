@@ -1,7 +1,7 @@
 package handlers
 
 import (
-	"github.com/joaodias/hugito-app/utils"
+	utils "github.com/joaodias/go-codebase"
 	"github.com/mitchellh/mapstructure"
 	"golang.org/x/oauth2"
 )
