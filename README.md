@@ -15,7 +15,7 @@ The content is hold in Github and managed in the Hugito platform.
 4. Tell your story with commits
 5. Open a Pull Request
 6. Discuss your awesome hack with your reviewer/reviewers
-7. Get a :+1 and merge that thing
+7. Get a :thumbsup: and merge that thing
 
 ## Roadmap
 - [x] Github Integration and Authentication
