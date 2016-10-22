@@ -3,7 +3,7 @@ package handlers
 import (
 	"encoding/base64"
 	"github.com/google/go-github/github"
-	"github.com/joaodias/hugito-app/utils"
+	utils "github.com/joaodias/go-codebase"
 	"golang.org/x/oauth2"
 	"net/http"
 )

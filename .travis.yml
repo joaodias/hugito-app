@@ -13,11 +13,11 @@ before_install:
   - go get golang.org/x/oauth2/github
   - go get github.com/gorilla/websocket
   - go get github.com/fatih/structs
+  - go get github.com/joaodias/go-codebase
 
 install:
   - export GOPATH="${TRAVIS_BUILD_DIR}/Godeps/_workspace:$GOPATH"
   - export PATH="${TRAVIS_BUILD_DIR}/Godeps/_workspace/bin:$PATH"
 
 script:
- - go test -v ./utils
  - go test -v ./handlers
