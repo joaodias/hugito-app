@@ -16,13 +16,7 @@ The content is hold in Github and managed in the Hugito platform.
 Application Deployed in: www.hugito.herokuapp.com
 
 ## How to Contribute
-1. Open Issue ("Missing cool feature #10")
-2. Create Feature Branch with the Issue number ("10-add-cool-feature")
-3. Hack that feature! :facepunch:
-4. Tell your story with commits
-5. Open a Pull Request
-6. Discuss your awesome hack with your reviewer/reviewers
-7. Get a :thumbsup: and merge that thing
+The contribution rules are being forced by GitMagic. Don't be afraid to make a mistake :satisfied:. It is OK. And GitMagic will tell you what is wrong :cop:. The rules are defined in `contributing.json` and you can check the meaning of each rule here: https://gitmagic.io/rules/
 
 ## Roadmap
 - [x] Github Integration and Authentication
