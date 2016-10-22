@@ -1,6 +1,6 @@
 ## How to contribute
 
-1. Create an Issue describing the problem you have. If the issue already exists, let people know that you want to work in the issue by sayng so :smile:
+1. Create an Issue describing the problem you have. If the issue already exists, let people know that you want to work in the issue by saying so :smile:
 2. Create a local branch starting with the issue number and then with some words related to the feature, as an example "1-cool-feature"
 3. Start to hack in your local branch :boom:
 4. Be sure to write test for your code. It should be tested. 
