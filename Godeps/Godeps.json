@@ -24,6 +24,10 @@
 			"Rev": "0b847f2facc24ec406130a05bb1bb72d41993b05"
 		},
 		{
+			"ImportPath": "github.com/joaodias/go-codebase",
+			"Rev": "a33bf59f0b4a1a97aa4f95faf5296cceb91550c6"
+		},
+		{
 			"ImportPath": "github.com/mitchellh/mapstructure",
 			"Rev": "f3009df150dadf309fdee4a54ed65c124afad715"
 		},
