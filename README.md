@@ -1,8 +1,6 @@
 # Hugito Static Website Content Manager
 
 [![Build Status](https://travis-ci.com/joaodias/hugito-app.svg?token=sUutqTfvfqWU1UcqaFtD)](https://travis-ci.com/joaodias/hugito-app)
-[![Coverage Status](https://coveralls.io/repos/github/joaodias/hugito-app/badge.svg?branch=master)]
-(https://coveralls.io/github/joaodias/hugito-app?branch=master)
 [![GoDoc](https://godoc.org/github.com/joaodias/hugito-app?status.svg)](http://godoc.org/github.com/joaodias/hugito-app)
 [![Go Report Card](https://goreportcard.com/badge/github.com/joaodias/hugito-app)](https://goreportcard.com/report/github.com/joaodias/hugito-app)
 
