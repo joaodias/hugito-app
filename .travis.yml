@@ -12,4 +12,5 @@ install:
   - godep restore
 
 script:
- - cd handlers && $HOME/gopath/bin/goveralls -service=travis-pro -repotoken $COVERALLS_TOKEN 
+ - cd handlers
+ - $HOME/gopath/bin/goveralls -service=travis-ci
