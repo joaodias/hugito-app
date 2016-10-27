@@ -6,7 +6,7 @@
 4. Push the branch to the remote repository by doing `git push origin 1-cool-feature`. This will add the label `in progress` to your feature branch and will let others know that you are working on the feature.
 5. Start to hack in your local branch :boom:. Make sure to run `go fmt` before you open pull request. The guidelines used for commenting are the usual with other go code:
   - Just comment unexported methods.
-  - You have to have a good justification to comment on an exported mehtod. Don't forget that code should speak by itself.
+  - You have to have a good justification to comment on an unexported mehtod. Don't forget that code should speak by itself.
   - Be smart in the names you choose.
   - Be smart when using blank lines. Just when needed.
 6. Be sure to write test for your code. It should be tested. And all the tests should pass before you open the pull request. Just run the `go test` command and make sure all the specs run. Hugito uses the framework ginkgo (BDD framework) and also some table testing for some data driven methods. Make sure you are/get familiar with those before you start.
