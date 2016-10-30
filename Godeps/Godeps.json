@@ -7,8 +7,27 @@
 	],
 	"Deps": [
 		{
+			"ImportPath": "github.com/Sirupsen/logrus",
+			"Comment": "v0.10.0-19-gf3cfb45",
+			"Rev": "f3cfb454f4c209e6668c95216c4744b8fddb2356"
+		},
+		{
+			"ImportPath": "github.com/cenk/backoff",
+			"Comment": "v1.0.0-15-gb02f2bb",
+			"Rev": "b02f2bbce11d7ea6b97f282ef1771b0fe2f65ef3"
+		},
+		{
+			"ImportPath": "github.com/dancannon/gorethink",
+			"Comment": "v2.2.2-2-g751feef",
+			"Rev": "751feefd791306510daf1ce703e872277c2f097e"
+		},
+		{
 			"ImportPath": "github.com/fatih/structs",
 			"Rev": "dc3312cb1a4513a366c4c9e622ad55c32df12ed3"
+		},
+		{
+			"ImportPath": "github.com/golang/protobuf/proto",
+			"Rev": "98fa357170587e470c5f27d3c3ea0947b71eb455"
 		},
 		{
 			"ImportPath": "github.com/google/go-github/github",
@@ -24,8 +43,17 @@
 			"Rev": "0b847f2facc24ec406130a05bb1bb72d41993b05"
 		},
 		{
+			"ImportPath": "github.com/hailocab/go-hostpool",
+			"Rev": "e80d13ce29ede4452c43dea11e79b9bc8a15b478"
+		},
+		{
 			"ImportPath": "github.com/joaodias/go-codebase",
 			"Rev": "a33bf59f0b4a1a97aa4f95faf5296cceb91550c6"
+		},
+		{
+			"ImportPath": "github.com/joho/godotenv",
+			"Comment": "v1-10-g4ed1339",
+			"Rev": "4ed13390c0acd2ff4e371e64d8b97c8954138243"
 		},
 		{
 			"ImportPath": "github.com/mitchellh/mapstructure",
@@ -167,6 +195,10 @@
 			"Rev": "b48c9a8b2644326d0a44eaaacc8d83e35174a05d"
 		},
 		{
+			"ImportPath": "golang.org/x/crypto/pbkdf2",
+			"Rev": "b2fa06b6af4b7c9bfeb8569ab7b17f04550717bf"
+		},
+		{
 			"ImportPath": "golang.org/x/net/context",
 			"Rev": "41c5c5cb12965112d2e298342c73e6b3e045a14a"
 		},
@@ -185,6 +217,25 @@
 		{
 			"ImportPath": "golang.org/x/sys/unix",
 			"Rev": "002cbb5f952456d0c50e0d2aff17ea5eca716979"
+		},
+		{
+			"ImportPath": "gopkg.in/dancannon/gorethink.v2/encoding",
+			"Comment": "v2.2.2",
+			"Rev": "016a1d3b4d15951ab2e39bd3596718ba94d298ba"
+		},
+		{
+			"ImportPath": "gopkg.in/dancannon/gorethink.v2/ql2",
+			"Comment": "v2.2.2",
+			"Rev": "016a1d3b4d15951ab2e39bd3596718ba94d298ba"
+		},
+		{
+			"ImportPath": "gopkg.in/dancannon/gorethink.v2/types",
+			"Comment": "v2.2.2",
+			"Rev": "016a1d3b4d15951ab2e39bd3596718ba94d298ba"
+		},
+		{
+			"ImportPath": "gopkg.in/fatih/pool.v2",
+			"Rev": "20a0a429c5f93de45c90f5f09ea297c25e0929b3"
 		},
 		{
 			"ImportPath": "gopkg.in/yaml.v2",
