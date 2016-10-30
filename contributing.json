@@ -10,7 +10,7 @@
     "subject_must_start_with_case": "upper",
     "subject_must_not_end_with_dot": true,
 
-    "body_lines_must_be_shorter_than": 73,
+    "body_lines_must_be_shorter_than": 500,
     "body_must_include_github_issue":true
   },
   "pull_request": {
