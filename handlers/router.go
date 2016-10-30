@@ -3,8 +3,14 @@ package handlers
 import (
 	"fmt"
 	"github.com/gorilla/websocket"
+	models "github.com/joaodias/hugito-app/models"
 	"net/http"
 )
+
+// DBSession wraps the database session.
+type DBSession struct {
+	*models.Session
+}
 
 // Handler is a function that represents the handlers used to handle the messages received by the client.
 type Handler func(Communicator, interface{})
@@ -15,15 +21,18 @@ var upgrader = websocket.Upgrader{
 	CheckOrigin:     func(r *http.Request) bool { return true },
 }
 
-// Router holds the mapping between messages and the respective handlers.
+// Router holds the mapping between messages and the respective handlers and
+// also the database session.
 type Router struct {
-	rules map[string]Handler
+	rules   map[string]Handler
+	session *DBSession
 }
 
-// NewRouter creates a new router with the mapping of the messages to the respective handlers.
-func NewRouter() *Router {
+// NewRouter creates a new router with the mapping of the messages to the respective handlers and the session of the database.
+func NewRouter(session *DBSession) *Router {
 	return &Router{
-		rules: make(map[string]Handler),
+		rules:   make(map[string]Handler),
+		session: session,
 	}
 }
 
@@ -46,7 +55,7 @@ func (e *Router) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprint(w, err.Error())
 		return
 	}
-	communicator := NewClient(socket, e.FindHandler)
+	communicator := NewClient(socket, e.FindHandler, e.session)
 	go communicator.Write()
 	communicator.Read()
 }

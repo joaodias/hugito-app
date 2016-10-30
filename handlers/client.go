@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"github.com/gorilla/websocket"
+	models "github.com/joaodias/hugito-app/models"
 	"golang.org/x/oauth2"
 	githuboauth "golang.org/x/oauth2/github"
 )
@@ -23,6 +24,7 @@ type Communicator interface {
 	Write()
 	SetSend(string, interface{})
 	GetOauthConfiguration() *oauth2.Config
+	GetDBSession() models.DataStorage
 	GithubWrapper
 }
 
@@ -32,6 +34,7 @@ type SocketClient struct {
 	socket      *websocket.Conn
 	findHandler FindHandler
 	oauthConf   *oauth2.Config
+	session     *DBSession
 }
 
 // Read reads from the websocket.
@@ -69,8 +72,13 @@ func (socketClient *SocketClient) GetOauthConfiguration() *oauth2.Config {
 	return socketClient.oauthConf
 }
 
+// GetDBSession gets the database session for the client.
+func (socketClient *SocketClient) GetDBSession() models.DataStorage {
+	return socketClient.session
+}
+
 // NewClient creates a new client communication
-func NewClient(socket *websocket.Conn, findHandler FindHandler) Communicator {
+func NewClient(socket *websocket.Conn, findHandler FindHandler, session *DBSession) Communicator {
 	return &SocketClient{
 		send:        make(chan Message),
 		socket:      socket,
@@ -80,5 +88,6 @@ func NewClient(socket *websocket.Conn, findHandler FindHandler) Communicator {
 			ClientSecret: Secret,
 			Endpoint:     githuboauth.Endpoint,
 		},
+		session: session,
 	}
 }
