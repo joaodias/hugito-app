@@ -4,12 +4,13 @@ import (
 	utils "github.com/joaodias/go-codebase"
 	"github.com/mitchellh/mapstructure"
 	"golang.org/x/oauth2"
+	"os"
 )
 
 // Github application configuration
-const (
-	ClientID = "ca2048cb35218bb7e36a"
-	Secret   = "829989b4cffd217aa7e51ea16a6a30a363dfac7f"
+var (
+	ClientID = os.Getenv("CLIENTID")
+	Secret   = os.Getenv("SECRET")
 )
 
 // Authentication represents the data exchanged between the communicator and the server

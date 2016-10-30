@@ -129,6 +129,18 @@ var _ = Describe("Handlers", func() {
 					Expect(mClient.Data).To(Equal("Cannot get the authorized user."))
 				})
 			})
+			Context("and the user cannot be written in the database", func() {
+				It("should send to the client an error message", func() {
+					defer testServer.Close()
+					mux.HandleFunc("/user/", func(w http.ResponseWriter, r *http.Request) {
+						fmt.Fprint(w, `{"Name":"João Dias","Login":"joaodias", "Email":"diasjoaoac@gmail.com"}`)
+					})
+					mClient.IsError = true
+					handlers.GetUser(mClient, mockJSONWithValidToken)
+					Expect(mClient.Name).To(ContainSubstring("error"))
+					Expect(mClient.Data).To(Equal("Could not register the user. Please try again."))
+				})
+			})
 			Context("and the user is successfully retrieved", func() {
 				It("should return a user set message to the client", func() {
 					defer testServer.Close()
