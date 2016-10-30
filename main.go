@@ -3,12 +3,24 @@ package main
 import (
 	"fmt"
 	"github.com/joaodias/hugito-app/handlers"
+	models "github.com/joaodias/hugito-app/models"
+	"github.com/joho/godotenv"
+	"log"
 	"net/http"
 	"os"
 )
 
 func main() {
-	router := handlers.NewRouter()
+	// This needs to be changed depending on the environment you are working.
+	err := godotenv.Load("production.env")
+	if err != nil {
+		log.Panic("Error loading .env file")
+	}
+	session, err := models.InitSession()
+	if err != nil {
+		log.Panic("Error initializing session: " + err.Error())
+	}
+	router := handlers.NewRouter(&handlers.DBSession{session})
 	router.Handle("repositories get", handlers.GetRepository)
 	router.Handle("repository validate", handlers.ValidateRepository)
 	router.Handle("content list", handlers.GetContentList)
