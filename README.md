@@ -21,6 +21,9 @@ Application Deployed in: www.hugito.herokuapp.com
 ## How to Contribute
 The contribution rules are being forced by GitMagic. Don't be afraid to make a mistake :satisfied:. It is OK. And GitMagic will tell you what is wrong :cop:. The rules are defined in `contributing.json` and you can check the meaning of each rule here: https://gitmagic.io/rules/
 
+### Important Considerations
+The application uses some environment variables that must be configured prior to the execution. These variables are different depending on the environment they are used: development and production. Be careful to point to the right `.env` file before start developing and before opening a pull request. These variables can be configured in `main.go`.
+
 ## Roadmap
 - [x] Github Integration and Authentication
 - [x] Content Editing in Markdown with live preview
