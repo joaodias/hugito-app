@@ -5,12 +5,6 @@ import (
 	"os"
 )
 
-// Host server and database name.
-var (
-	DBHost = os.Getenv("DBHOST")
-	DBName = os.Getenv("DBNAME")
-)
-
 // DataStorage holds the the methods related to data storage situations.
 type DataStorage interface {
 	AddUser(interface{}) error
@@ -24,8 +18,8 @@ type Session struct {
 // InitSession initiallizes the database session.
 func InitSession() (*Session, error) {
 	session, err := r.Connect(r.ConnectOpts{
-		Address:  DBHost,
-		Database: DBName,
+		Address:  os.Getenv("DBHOST"),
+		Database: os.Getenv("DBNAME"),
 	})
 	if err != nil {
 		return nil, err
