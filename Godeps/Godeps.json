@@ -200,23 +200,23 @@
 		},
 		{
 			"ImportPath": "golang.org/x/net/context",
-			"Rev": "41c5c5cb12965112d2e298342c73e6b3e045a14a"
+			"Rev": "76c1a11e06a6d0fcd17b3830b8e1b87a2ade4a9c"
 		},
 		{
 			"ImportPath": "golang.org/x/oauth2",
-			"Rev": "1e695b1c8febf17aad3bfa7bf0a819ef94b98ad5"
+			"Rev": "25b4fb1468cb89700c7c060cb99f30581a61f5e3"
 		},
 		{
 			"ImportPath": "golang.org/x/oauth2/github",
-			"Rev": "1e695b1c8febf17aad3bfa7bf0a819ef94b98ad5"
+			"Rev": "25b4fb1468cb89700c7c060cb99f30581a61f5e3"
 		},
 		{
 			"ImportPath": "golang.org/x/oauth2/internal",
-			"Rev": "1e695b1c8febf17aad3bfa7bf0a819ef94b98ad5"
+			"Rev": "25b4fb1468cb89700c7c060cb99f30581a61f5e3"
 		},
 		{
 			"ImportPath": "golang.org/x/sys/unix",
-			"Rev": "002cbb5f952456d0c50e0d2aff17ea5eca716979"
+			"Rev": "c200b10b5d5e122be351b67af224adc6128af5bf"
 		},
 		{
 			"ImportPath": "gopkg.in/dancannon/gorethink.v2/encoding",
