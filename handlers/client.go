@@ -5,6 +5,7 @@ import (
 	models "github.com/joaodias/hugito-app/models"
 	"golang.org/x/oauth2"
 	githuboauth "golang.org/x/oauth2/github"
+	"os"
 )
 
 // FindHandler returns the Handler related to the given message sent by the client.
@@ -84,8 +85,8 @@ func NewClient(socket *websocket.Conn, findHandler FindHandler, session *DBSessi
 		socket:      socket,
 		findHandler: findHandler,
 		oauthConf: &oauth2.Config{
-			ClientID:     ClientID,
-			ClientSecret: Secret,
+			ClientID:     os.Getenv("CLIENTID"),
+			ClientSecret: os.Getenv("SECRET"),
 			Endpoint:     githuboauth.Endpoint,
 		},
 		session: session,
