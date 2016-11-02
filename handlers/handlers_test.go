@@ -296,6 +296,7 @@ var _ = Describe("Handlers", func() {
 		type MockContentList struct {
 			Name        string   `json:"name"`
 			Titles      []string `json:"title"`
+			Path        string   `json:"path"`
 			AccessToken string   `json:"accessToken"`
 		}
 		type MockAuthor struct {
@@ -313,6 +314,7 @@ var _ = Describe("Handlers", func() {
 			RepositoryName string `json:"repositoryName"`
 			Branch         string `json:"branch"`
 			Title          string `json:"branch"`
+			Path           string `json:"path"`
 			Body           string `json:"content"`
 			MockCommit     `json:"commit"`
 			AccessToken    string `json:"accessToken"`
@@ -340,11 +342,11 @@ var _ = Describe("Handlers", func() {
 					},
 				},
 			}
-			mockContentList = &MockContentList{Name: "validatedrepo", Titles: []string{""}, AccessToken: "90d64460d14870c08c81352a05dedd3465940a7c"}
+			mockContentList = &MockContentList{Name: "validatedrepo", Titles: []string{""}, Path: "content/mypath", AccessToken: "90d64460d14870c08c81352a05dedd3465940a7c"}
 			mockJSONContentList = structs.Map(mockContentList)
 			mockAuthor = &MockAuthor{}
 			mockCommit = &MockCommit{}
-			mockContent = &MockContent{RepositoryName: "validatedrepo", Branch: "one-cool-branch", Title: "filename", Body: "cool content", AccessToken: "90d64460d14870c08c81352a05dedd3465940a7c"}
+			mockContent = &MockContent{RepositoryName: "validatedrepo", Branch: "one-cool-branch", Title: "filename", Path: "content/mypath", Body: "cool content", AccessToken: "90d64460d14870c08c81352a05dedd3465940a7c"}
 			mockJSONContent = structs.Map(mockContent)
 		})
 		Describe("When getting a list of a content files", func() {
@@ -372,7 +374,7 @@ var _ = Describe("Handlers", func() {
 					mux.HandleFunc("/user/", func(w http.ResponseWriter, r *http.Request) {
 						fmt.Fprint(w, `{"Login":"joaodias"}`)
 					})
-					mux.HandleFunc("/repos/joaodias/validatedrepo/contents/content", func(w http.ResponseWriter, r *http.Request) {
+					mux.HandleFunc("/repos/joaodias/validatedrepo/contents/"+mockContentList.Path, func(w http.ResponseWriter, r *http.Request) {
 						fmt.Fprint(w, `someErroniousStuff`)
 					})
 					handlers.GetContentList(mClient, mockJSONContentList)
@@ -386,7 +388,7 @@ var _ = Describe("Handlers", func() {
 					mux.HandleFunc("/user/", func(w http.ResponseWriter, r *http.Request) {
 						fmt.Fprint(w, `{"Login":"joaodias"}`)
 					})
-					mux.HandleFunc("/repos/joaodias/validatedrepo/contents/content", func(w http.ResponseWriter, r *http.Request) {
+					mux.HandleFunc("/repos/joaodias/validatedrepo/contents/"+mockContent.Path, func(w http.ResponseWriter, r *http.Request) {
 						fmt.Fprint(w, `[{"Name":"Content File 1"}, {"Name":"Content File 2"}]`)
 					})
 					handlers.GetContentList(mClient, mockJSONContentList)
@@ -394,6 +396,7 @@ var _ = Describe("Handlers", func() {
 					receivedData := mClient.Data.(handlers.ContentList)
 					Expect(receivedData.Name).To(Equal("validatedrepo"))
 					Expect(receivedData.Titles).To(Equal([]string{"Content File 1", "Content File 2"}))
+					Expect(receivedData.Path).To(Equal("content/mypath"))
 					Expect(receivedData.AccessToken).To(Equal("90d64460d14870c08c81352a05dedd3465940a7c"))
 				})
 			})
@@ -423,7 +426,7 @@ var _ = Describe("Handlers", func() {
 					mux.HandleFunc("/user/", func(w http.ResponseWriter, r *http.Request) {
 						fmt.Fprint(w, `{"Login":"joaodias"}`)
 					})
-					mux.HandleFunc("/repos/joaodias/validatedrepo/contents/content/filename", func(w http.ResponseWriter, r *http.Request) {
+					mux.HandleFunc("/repos/joaodias/validatedrepo/contents/content/"+mockContent.Path+"/"+mockContent.Title, func(w http.ResponseWriter, r *http.Request) {
 						fmt.Fprint(w, `someErroniousStuff`)
 					})
 					handlers.GetFileContent(mClient, mockJSONContent)
@@ -431,13 +434,13 @@ var _ = Describe("Handlers", func() {
 					Expect(mClient.Data).To(Equal("Can't retrieve the file content."))
 				})
 			})
-			Context("and the content list is successfully retrieved", func() {
-				It("should return a content list message to the client", func() {
+			Context("and the content of the file is successfully retrieved", func() {
+				It("should return the file content to the client", func() {
 					defer testServer.Close()
 					mux.HandleFunc("/user/", func(w http.ResponseWriter, r *http.Request) {
 						fmt.Fprint(w, `{"Login":"joaodias"}`)
 					})
-					mux.HandleFunc("/repos/joaodias/validatedrepo/contents/content/filename", func(w http.ResponseWriter, r *http.Request) {
+					mux.HandleFunc("/repos/joaodias/validatedrepo/contents/"+mockContent.Path+"/"+mockContent.Title, func(w http.ResponseWriter, r *http.Request) {
 						fmt.Fprint(w, `{"Content":"Cool"}`)
 					})
 					handlers.GetFileContent(mClient, mockJSONContent)
@@ -448,6 +451,7 @@ var _ = Describe("Handlers", func() {
 					// Github content is encoded in base64
 					expectedBody, _ := base64.StdEncoding.DecodeString("Cool")
 					Expect(receivedData.Body).To(Equal(string(expectedBody)))
+					Expect(receivedData.Path).To(Equal("content/mypath"))
 					Expect(receivedData.AccessToken).To(Equal("90d64460d14870c08c81352a05dedd3465940a7c"))
 				})
 			})
@@ -477,7 +481,7 @@ var _ = Describe("Handlers", func() {
 					mux.HandleFunc("/user/", func(w http.ResponseWriter, r *http.Request) {
 						fmt.Fprint(w, `{"Name":"João Dias","Login":"joaodias", "Email":"diasjoaoac@gmail.com"}`)
 					})
-					mux.HandleFunc("/repos/joaodias/validatedrepo/contents/content/filename", func(w http.ResponseWriter, r *http.Request) {
+					mux.HandleFunc("/repos/joaodias/validatedrepo/contents/"+mockContent.Path+"/"+mockContent.Title, func(w http.ResponseWriter, r *http.Request) {
 						fmt.Fprint(w, `someErroniousStuff`)
 					})
 					handlers.UpdateContent(mClient, mockJSONContent)
@@ -491,7 +495,7 @@ var _ = Describe("Handlers", func() {
 					mux.HandleFunc("/user/", func(w http.ResponseWriter, r *http.Request) {
 						fmt.Fprint(w, `{"Name":"João Dias","Login":"joaodias", "Email":"diasjoaoac@gmail.com"}`)
 					})
-					mux.HandleFunc("/repos/joaodias/validatedrepo/contents/content/filename", func(w http.ResponseWriter, r *http.Request) {
+					mux.HandleFunc("/repos/joaodias/validatedrepo/contents/"+mockContent.Path+"/"+mockContent.Title, func(w http.ResponseWriter, r *http.Request) {
 						if r.Method == "GET" {
 							fmt.Fprint(w, `{"SHA":"1234"}`)
 						}
@@ -508,7 +512,7 @@ var _ = Describe("Handlers", func() {
 					mux.HandleFunc("/user/", func(w http.ResponseWriter, r *http.Request) {
 						fmt.Fprint(w, `{"Name":"João Dias","Login":"joaodias", "Email":"diasjoaoac@gmail.com"}`)
 					})
-					mux.HandleFunc("/repos/joaodias/validatedrepo/contents/content/filename", func(w http.ResponseWriter, r *http.Request) {
+					mux.HandleFunc("/repos/joaodias/validatedrepo/contents/"+mockContent.Path+"/"+mockContent.Title, func(w http.ResponseWriter, r *http.Request) {
 						if r.Method == "GET" {
 							fmt.Fprint(w, `{"SHA":"1234"}`)
 						}
@@ -545,7 +549,7 @@ var _ = Describe("Handlers", func() {
 					mux.HandleFunc("/user/", func(w http.ResponseWriter, r *http.Request) {
 						fmt.Fprint(w, `{"Name":"João Dias","Login":"joaodias", "Email":"diasjoaoac@gmail.com"}`)
 					})
-					mux.HandleFunc("/repos/joaodias/validatedrepo/contents/content/filename", func(w http.ResponseWriter, r *http.Request) {
+					mux.HandleFunc("/repos/joaodias/validatedrepo/contents/"+mockContent.Path+"/"+mockContent.Title, func(w http.ResponseWriter, r *http.Request) {
 						fmt.Fprint(w, `ErroniousStuff`)
 					})
 					handlers.CreateContent(mClient, mockJSONContent)
@@ -559,7 +563,7 @@ var _ = Describe("Handlers", func() {
 					mux.HandleFunc("/user/", func(w http.ResponseWriter, r *http.Request) {
 						fmt.Fprint(w, `{"Name":"João Dias","Login":"joaodias", "Email":"diasjoaoac@gmail.com"}`)
 					})
-					mux.HandleFunc("/repos/joaodias/validatedrepo/contents/content/filename", func(w http.ResponseWriter, r *http.Request) {
+					mux.HandleFunc("/repos/joaodias/validatedrepo/contents/"+mockContent.Path+"/"+mockContent.Title, func(w http.ResponseWriter, r *http.Request) {
 						fmt.Fprint(w, `{"Commit":{"SHA":"1234","Author":{"Name":"João Dias","Username":"joaodias","Email":"diasjoaoac@gmail.com"}}}`)
 					})
 					handlers.CreateContent(mClient, mockJSONContent)
@@ -568,6 +572,7 @@ var _ = Describe("Handlers", func() {
 					Expect(receivedData.RepositoryName).To(Equal("validatedrepo"))
 					Expect(receivedData.Branch).To(Equal("one-cool-branch"))
 					Expect(receivedData.Title).To(Equal("filename"))
+					Expect(receivedData.Path).To(Equal("content/mypath"))
 					Expect(receivedData.Body).To(Equal("cool content"))
 					Expect(receivedData.Commit.SHA).To(Equal("1234"))
 					Expect(receivedData.Commit.Name).To(Equal("João Dias"))
@@ -576,7 +581,7 @@ var _ = Describe("Handlers", func() {
 				})
 			})
 		})
-		Describe("Wen removing a github content file", func() {
+		Describe("When removing a github content file", func() {
 			Context("and the JSON is invalid", func() {
 				It("should return an error to the client", func() {
 					handlers.RemoveContent(mClient, "some stuff that looks like an invalid json")
@@ -601,7 +606,7 @@ var _ = Describe("Handlers", func() {
 					mux.HandleFunc("/user/", func(w http.ResponseWriter, r *http.Request) {
 						fmt.Fprint(w, `{"Name":"João Dias","Login":"joaodias", "Email":"diasjoaoac@gmail.com"}`)
 					})
-					mux.HandleFunc("/repos/joaodias/validatedrepo/contents/content/filename", func(w http.ResponseWriter, r *http.Request) {
+					mux.HandleFunc("/repos/joaodias/validatedrepo/contents/"+mockContent.Path+"/"+mockContent.Title, func(w http.ResponseWriter, r *http.Request) {
 						fmt.Fprint(w, `someErroniousStuff`)
 					})
 					handlers.RemoveContent(mClient, mockJSONContent)
@@ -615,7 +620,7 @@ var _ = Describe("Handlers", func() {
 					mux.HandleFunc("/user/", func(w http.ResponseWriter, r *http.Request) {
 						fmt.Fprint(w, `{"Name":"João Dias","Login":"joaodias", "Email":"diasjoaoac@gmail.com"}`)
 					})
-					mux.HandleFunc("/repos/joaodias/validatedrepo/contents/content/filename", func(w http.ResponseWriter, r *http.Request) {
+					mux.HandleFunc("/repos/joaodias/validatedrepo/contents/"+mockContent.Path+"/"+mockContent.Title, func(w http.ResponseWriter, r *http.Request) {
 						if r.Method == "GET" {
 							fmt.Fprint(w, `{"SHA":"1234"}`)
 						}
@@ -632,7 +637,7 @@ var _ = Describe("Handlers", func() {
 					mux.HandleFunc("/user/", func(w http.ResponseWriter, r *http.Request) {
 						fmt.Fprint(w, `{"Name":"João Dias","Login":"joaodias", "Email":"diasjoaoac@gmail.com"}`)
 					})
-					mux.HandleFunc("/repos/joaodias/validatedrepo/contents/content/filename", func(w http.ResponseWriter, r *http.Request) {
+					mux.HandleFunc("/repos/joaodias/validatedrepo/contents/"+mockContent.Path+"/"+mockContent.Title, func(w http.ResponseWriter, r *http.Request) {
 						if r.Method == "GET" {
 							fmt.Fprint(w, `{"SHA":"1234"}`)
 						}
@@ -644,6 +649,7 @@ var _ = Describe("Handlers", func() {
 					Expect(receivedData.RepositoryName).To(Equal("validatedrepo"))
 					Expect(receivedData.Branch).To(Equal("one-cool-branch"))
 					Expect(receivedData.Title).To(Equal("filename"))
+					Expect(receivedData.Path).To(Equal("content/mypath"))
 					Expect(receivedData.Body).To(Equal(""))
 					Expect(receivedData.AccessToken).To(Equal("90d64460d14870c08c81352a05dedd3465940a7c"))
 				})
