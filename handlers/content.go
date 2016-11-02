@@ -10,6 +10,7 @@ type ContentList struct {
 	Name        string   `json:"name"`
 	Branch      string   `json:"branch"`
 	Titles      []string `json:"title"`
+	Path        string   `json:"path"`
 	AccessToken string   `json:"accessToken"`
 }
 
@@ -19,6 +20,7 @@ type Content struct {
 	RepositoryName string `json:"repositoryName"`
 	Branch         string `json:"branch"`
 	Title          string `json:"title"`
+	Path           string `json:"path"`
 	Body           string `json:"content"`
 	Commit         `json:"commit"`
 	AccessToken    string `json:"accessToken"`
@@ -45,7 +47,7 @@ func GetContentList(communicator Communicator, data interface{}) {
 		return
 	}
 	githubContentGetOpt := GetRepositoryContentGetOptions(contentList.Branch)
-	contentList.Titles, err = GetGithubRepositoryTree(githubClient, userLogin, githubContentGetOpt, contentList.Name, "content")
+	contentList.Titles, err = GetGithubRepositoryTree(githubClient, userLogin, githubContentGetOpt, contentList.Name, contentList.Path)
 	if err != nil {
 		communicator.SetSend("error", "Can't retrieve the content list.")
 		return
@@ -74,7 +76,7 @@ func CreateContent(communicator Communicator, data interface{}) {
 		return
 	}
 	githubFileContentOpt := GetFileContentOptions(user, content)
-	content.Commit, err = CreateGithubFileContent(githubClient, githubFileContentOpt, content.RepositoryName, "content/"+content.Title)
+	content.Commit, err = CreateGithubFileContent(githubClient, githubFileContentOpt, content.RepositoryName, content.Path+"/"+content.Title)
 	if err != nil {
 		communicator.SetSend("error", "Unnable to create the content.")
 		return
@@ -103,7 +105,7 @@ func GetFileContent(communicator Communicator, data interface{}) {
 		return
 	}
 	githubContentGetOpt := GetRepositoryContentGetOptions(content.Branch)
-	content.Body, err = GetGithubFileContent(githubClient, githubContentGetOpt, userLogin, content.RepositoryName, "content/"+content.Title)
+	content.Body, err = GetGithubFileContent(githubClient, githubContentGetOpt, userLogin, content.RepositoryName, content.Path+"/"+content.Title)
 	if err != nil {
 		communicator.SetSend("error", "Can't retrieve the file content.")
 		return
@@ -133,12 +135,12 @@ func UpdateContent(communicator Communicator, data interface{}) {
 	}
 	githubContentGetOpt := GetRepositoryContentGetOptions(content.Branch)
 	githubFileContentOpt := GetFileContentOptions(user, content)
-	*githubFileContentOpt.SHA, err = GetGithubFileSHA(githubClient, githubContentGetOpt, user.Login, content.RepositoryName, "content/"+content.Title)
+	*githubFileContentOpt.SHA, err = GetGithubFileSHA(githubClient, githubContentGetOpt, user.Login, content.RepositoryName, content.Path+"/"+content.Title)
 	if err != nil {
 		communicator.SetSend("error", "Unnable to get content information.")
 		return
 	}
-	err = UpdateGithubFileContent(githubClient, githubFileContentOpt, content.RepositoryName, "content/"+content.Title)
+	err = UpdateGithubFileContent(githubClient, githubFileContentOpt, content.RepositoryName, content.Path+"/"+content.Title)
 	if err != nil {
 		communicator.SetSend("error", "Unnable to update the content.")
 		return
@@ -168,12 +170,12 @@ func RemoveContent(communicator Communicator, data interface{}) {
 	}
 	githubContentGetOpt := GetRepositoryContentGetOptions(content.Branch)
 	githubFileContentOpt := GetFileContentOptions(user, content)
-	*githubFileContentOpt.SHA, err = GetGithubFileSHA(githubClient, githubContentGetOpt, user.Login, content.RepositoryName, "content/"+content.Title)
+	*githubFileContentOpt.SHA, err = GetGithubFileSHA(githubClient, githubContentGetOpt, user.Login, content.RepositoryName, content.Path+"/"+content.Title)
 	if err != nil {
 		communicator.SetSend("error", "Unnable to get content information.")
 		return
 	}
-	err = RemoveGithubFileContent(githubClient, githubFileContentOpt, content.RepositoryName, "content/"+content.Title)
+	err = RemoveGithubFileContent(githubClient, githubFileContentOpt, content.RepositoryName, content.Path+"/"+content.Title)
 	if err != nil {
 		communicator.SetSend("error", "Unnable to remove the content.")
 		return
