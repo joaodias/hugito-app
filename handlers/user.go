@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"fmt"
 	"github.com/mitchellh/mapstructure"
 	"time"
 )
@@ -38,7 +37,6 @@ func GetUser(communicator Communicator, data interface{}) {
 	authorizedUser.CreatedAt = time.Now()
 	err = communicator.GetDBSession().AddUser(authorizedUser)
 	if err != nil {
-		fmt.Print(err)
 		communicator.SetSend("error", "Could not register the user. Please try again.")
 		return
 	}
