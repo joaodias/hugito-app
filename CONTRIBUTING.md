@@ -1,7 +1,7 @@
 ## How to contribute
 
 1. Create an Issue describing the problem you have. If the issue already exists, let people know that you want to work in the issue by saying so :smile:
-2. Clone the repository to your computer: `git clone https://github.com/joaodias/hugito-app.git`
+2. Fork the hugito-app repository and clone it.
 3. Create a local branch starting with the issue number and then with some words related to the feature, as an example "1-cool-feature"
 4. Push the branch to the remote repository by doing `git push origin 1-cool-feature`. This will add the label `in progress` to your feature branch and will let others know that you are working on the feature.
 5. Start to hack in your local branch :boom:. Make sure to run `go fmt` before you open pull request. The guidelines used for commenting are the usual with other go code:
