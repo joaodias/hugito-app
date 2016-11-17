@@ -27,12 +27,6 @@ type Content struct {
 }
 
 // GetContentList gets the repository content list.
-//
-// Happy Path:
-// 1. Decode JSON
-// 2. Get the github authenticated user
-// 3. Get the repository content files
-// 4. Send the content list to the client
 func GetContentList(communicator Communicator, data interface{}) {
 	var contentList ContentList
 	err := mapstructure.Decode(data, &contentList)
@@ -56,12 +50,6 @@ func GetContentList(communicator Communicator, data interface{}) {
 }
 
 // CreateContent creates a new github content file.
-//
-// Happy Path:
-// 1. Decode JSON
-// 2. Get the github authenticated user
-// 3. Create the content file
-// 4. Send Success message to the client
 func CreateContent(communicator Communicator, data interface{}) {
 	var content Content
 	err := mapstructure.Decode(data, &content)
@@ -85,12 +73,6 @@ func CreateContent(communicator Communicator, data interface{}) {
 }
 
 // GetFileContent gets the content of a file from the github repository.
-//
-// Happy Path:
-// 1. Decode JSON
-// 2. Get the github authenticated user
-// 3. Get the content of the given repository file
-// 4. Send the content to the client
 func GetFileContent(communicator Communicator, data interface{}) {
 	var content Content
 	err := mapstructure.Decode(data, &content)
@@ -114,12 +96,6 @@ func GetFileContent(communicator Communicator, data interface{}) {
 }
 
 // UpdateContent updates the content of a github file.
-//
-// Happy Path:
-// 1. Decode JSON
-// 2. Get the github authenticated user
-// 3. Update the cotent of a the file
-// 4. Send Success message to the client
 func UpdateContent(communicator Communicator, data interface{}) {
 	var content Content
 	err := mapstructure.Decode(data, &content)
@@ -149,12 +125,6 @@ func UpdateContent(communicator Communicator, data interface{}) {
 }
 
 // RemoveContent removes an already existent github content file.
-//
-// Happy Path:
-// 1. Decode JSON
-// 2. Get the github authenticated user
-// 3. Remove the content file
-// 4. Send Success message to the client
 func RemoveContent(communicator Communicator, data interface{}) {
 	var content Content
 	err := mapstructure.Decode(data, &content)

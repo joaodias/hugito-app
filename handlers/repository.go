@@ -20,11 +20,6 @@ type Repository struct {
 }
 
 // GetRepository gets the repositories for an authorized user.
-//
-// Happy path:
-// 1. Decode JSON
-// 3. Get the repositories for the user
-// 4. Send repositories to the client
 func GetRepository(communicator Communicator, data interface{}) {
 	var repositories Repositories
 	err := mapstructure.Decode(data, &repositories)
@@ -43,13 +38,6 @@ func GetRepository(communicator Communicator, data interface{}) {
 
 // ValidateRepository checks if a given repository has a valid hugo
 // configuration in the master branch.
-//
-// Happy Path:
-// 1. Decode JSON
-// 2. Get the github authenticated user
-// 3. Get the repository file structure from github
-// 4. Check if the given file structure contains the reference file structure.
-// 5. Send a repository validate message to the client
 func ValidateRepository(communicator Communicator, data interface{}) {
 	var repository Repository
 	err := mapstructure.Decode(data, &repository)
