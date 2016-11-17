@@ -15,12 +15,6 @@ type Authentication struct {
 }
 
 // Authenticate performs the authentication of an user using Github oauth.
-// Happy Path:
-// 1. Decode json
-// 2. Verify if the received state from github is equal to the generated
-// state.
-// 3. Get the token.
-// 4. Send the token to the client.
 func Authenticate(communicator Communicator, data interface{}) {
 	var authentication Authentication
 	err := mapstructure.Decode(data, &authentication)

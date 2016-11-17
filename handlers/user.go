@@ -15,11 +15,6 @@ type User struct {
 }
 
 // GetUser gets an user.
-//
-// The happy flow:
-// 1. Decode received data
-// 3. Get the github client for this user
-// 4. Get the github UserName
 func GetUser(communicator Communicator, data interface{}) {
 	var user User
 	err := mapstructure.Decode(data, &user)
