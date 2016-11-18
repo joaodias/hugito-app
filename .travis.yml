@@ -3,6 +3,7 @@ go:
  - 1.7.3
 
 before_install:
+  - go get github.com/modocache/gover
   - go get github.com/mattn/goveralls
   - go get github.com/tools/godep
 
@@ -12,5 +13,7 @@ install:
   - godep restore
 
 script:
- - cd handlers
- - $HOME/gopath/bin/goveralls -service=travis-ci
+ - go test -coverprofile=handlers.coverprofile ./handlers
+ - go test -coverprofile=hugo.coverprofile ./hugo
+ - $HOME/gopath/bin/gover
+ - $HOME/gopath/bin/goveralls -coverprofile=gover.coverprofile -service travis-ci
