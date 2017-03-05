@@ -1,0 +1,5 @@
+export PORT=:4000
+export DBHOST=127.0.0.1:28015
+export DBNAME=development
+export CLIENTID=f3387b979183f21efc69
+export SECRET=ff4f508cafe7537c811639f9e9f7d20221c6395d

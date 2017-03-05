@@ -1,0 +1,5 @@
+export PORT=:4000
+export DBHOST=138.197.15.62:28015
+export DBNAME=hugito
+export CLIENTID=ca2048cb35218bb7e36a
+export SECRET=829989b4cffd217aa7e51ea16a6a30a363dfac7f
