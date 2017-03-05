@@ -1,0 +1,33 @@
+version: '2'
+
+services:
+    rethinkdb:
+        image: rethinkdb
+        ports:
+            - 8080:8080
+            - 28015:28015
+            - 29015:29015
+    golang:
+        build:
+            context: .
+            dockerfile: Dockerfile
+        depends_on:
+            - rethinkdb
+        links:
+            - rethinkdb
+        working_dir: /go/src/github.com/joaodias/hugito-app
+        volumes:
+            - .:/go/src/github.com/joaodias/hugito-app
+        ports:
+            - 4005:4005
+        environment:
+            - APP_ENV=production
+            - PORT=:4005
+            - DBHOST=rethinkdb:28015
+            - DBNAME=hugito
+            - CLIENTID=ca2048cb35218bb7e36a
+            - SECRET=829989b4cffd217aa7e51ea16a6a30a363dfac7f
+
+        # Unless specified, go will not init a new db. Clearly does not make sense in production.
+        # command: bash -c 'godep restore -v && cd rethinkdb && go run init.go && cd .. && go run main.go'
+        command: bash -c 'godep restore -v && go run main.go'

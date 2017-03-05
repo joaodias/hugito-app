@@ -15,21 +15,10 @@ Hugito = HUGO + Git
 
 The content is hold in Github and managed in the Hugito platform.
 
-## Deployement
-Application Deployed in: www.hugito.herokuapp.com
-
 ## How to Contribute
 The contribution rules are being forced by GitMagic. Don't be afraid to make a mistake :satisfied:. It is OK. And GitMagic will tell you what is wrong :cop:. The rules are defined in `contributing.json` and you can check the meaning of each rule here: https://gitmagic.io/rules/
 
-### Important Considerations
-The application uses some environment variables that must be configured prior to the execution. These variables are different depending on the environment they are used: development and production. Be careful to point to the right `.env` file before start developing and before opening a pull request. These variables can be configured in `main.go`.
+# Development
+To put the backend up and running just do the docker-compose dance:
 
-## Roadmap
-- [x] Github Integration and Authentication
-- [x] Content Editing in Markdown with live preview
-- [x] Get, Create, Update and Delete content from a HUGO generated website
-- [x] Multiple Repositories (Enabling multiple websites on one repository)
-- [ ] Database Integration, so that not an intermediary persistence layer is created between the client and Github.
-- [ ] [HUGO](https://gohugo.io) configuration editing
-- [ ] Improved Markdown Editor
-- [ ] Open for your input :)
+`docker-compose up`

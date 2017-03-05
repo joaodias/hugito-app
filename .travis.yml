@@ -13,7 +13,8 @@ install:
   - godep restore
 
 script:
- - go test -coverprofile=handlers.coverprofile ./handlers
- - go test -coverprofile=hugo.coverprofile ./hugo
+ - go test -coverprofile=usecases.coverprofile ./usecases
+ - go test -coverprofile=interfaces.coverprofile ./interfaces
+ - go test -coverprofile=infrastructure.coverprofile ./infrastructure
  - $HOME/gopath/bin/gover
  - $HOME/gopath/bin/goveralls -coverprofile=gover.coverprofile -service travis-ci
