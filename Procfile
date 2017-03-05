@@ -1,1 +1,0 @@
-web: hugito-app
